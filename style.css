@@ -1,6 +1,19 @@
+/***Might change all height into fixed px element***/
+
+:root {
+    --header-color: #575f6d;
+    --nav-bar-color: #424b5a;
+    --background-color: #2d3748;
+    --font: "Nunito", sans-serif;
+    --border-setting: solid 1px black;
+    --border-radius: 10px;
+}
+
 html, body {
     margin: 0;
     padding: 0;
+    color: aliceblue;
+    font-family: var(--font);
 }
 
 html {
@@ -8,23 +21,42 @@ html {
 }
 
 body {
+    
     height: 100%; 
-    background-color: #e0f7fa; 
-    color: #333;
     display: flex; 
     flex-direction: column;
 }
 
-header, div {
-    border: solid 1px;
+header, .nav-bar, .user-section, .info-section {
+    border: solid 1px black;
+}
+
+@media screen and (max-width: 825px){
+    header {
+        font-size: 100%;
+    }
+}
+
+.mol-info {
+    border-left: var(--border-setting);
+    border-bottom: var(--border-setting);
+}
+
+.spec-desc {
+    border-left: var(--border-setting);
 }
 
 /***Header***/
 header {
     height: 10%;
+    font-weight: 800;
+    font-size: 2em;
+    border-bottom: 0;
     display: flex;
     align-content: center;
     justify-content: center;
+    padding: 1.5%;
+    background-color: var(--header-color);
 }
 
 .title {
@@ -32,6 +64,7 @@ header {
     display: flex;
     align-items: center;
     justify-content: center;
+
 }
 
 /* .logo {
@@ -42,14 +75,16 @@ header {
 .nav-bar {
     display: flex;
     justify-content: center;
+    background-color: var(--nav-bar-color);
 }
 
 /***Main Section + General Styling***/
 .main-section {
-    height: 90%;
+    height: 80%;
     display: flex;
     justify-content: space-around;
     align-items: center;
+    background-color: var(--background-color);
 }
 
 .info-section, 
@@ -57,14 +92,28 @@ header {
     height: 70%;
 }
 
+.nav-bar-section {
+    padding: 1%;
+    cursor: pointer;
+}
+
+.nav-bar-section:hover {
+    background-color: var(--header-color);
+    color: #6193eb;
+}
+
 /***Info Section**/
 .info-section {
     display: flex;
     width: 60%;
+    border-radius: var(--border-radius) ;
 }
 
 .spec-info {
     width: 70%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .si-left-section {
@@ -73,18 +122,91 @@ header {
 
 .mol-info {
     height: 40%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .spec-desc {
-    height: 60%;
-    overflow: scroll;
+    height: 56.5%;
+    padding: 3%;
+    overflow-y: scroll;
+}
+
+.spec-desc::-webkit-scrollbar {
+    display: none;
+}
+
+.sample-mol {
+    height: 90%;
+    width: 70%;
+    background-color: aliceblue;
+    border-radius: var(--border-radius);
+}
+
+.sample-spec {
+    height: 95%;
+    width: 95%;
+    background-color: aliceblue;
+    border-radius: var(--border-radius);
 }
 
 /***User Section**/
 .user-section {
     width: 30%;
+    border-radius: var(--border-radius);
+    background-color: aliceblue;
 }
 
-.fragment-canvas {
+.frag-canvas {
     height: 95%;
+}
+
+.u-s-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.u-s-name {
+    padding: 1%;
+    color: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.frag-table-button {
+    padding: 2%;
+    border: var(--border-setting);
+    border-radius: var(--border-radius);
+}
+
+.frag-table-button:hover {
+    background-color: #c6c6c6;
+    color: #3674e0;
+}
+
+.frag-table {
+    position: absolute;
+    z-index: 9;
+    background: rgba(3, 79, 212, 0.5);
+    border-radius: var(--border-radius);
+    width: 30%;
+    height: 300px;
+    bottom: 15%;
+    color: black;
+    display: none;
+}
+
+
+.f-t-general-instr {
+    text-align: center;
+    cursor: move;
+}
+
+/***Copyright***/
+.copyright {
+    background: var(--background-color);
+    text-align: center;
 }

@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spectroscopic Identificationp</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Overpass:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,6 +14,7 @@
         <div class="title">Identifying Organic Compounds Using Spectroscopy</div>
         <!-- <div class="logo">DePauw Logo</div> -->
     </header>
+
     <div class="nav-bar">
         <div class="nav-bar-section">Compunds</div> 
         <div class="nav-bar-section">Mass Spectrum</div>
@@ -21,18 +25,52 @@
 
     <div class="main-section">
         <div class="user-section">
-            <div class="fragment-canvas">777999</div>
-            <button>Search</button>
+            <div class="u-s-header"> 
+                <div class="u-s-name">Fragment Space</div>
+                <button class="frag-table-button">Open Fragment Table</button>
+            </div>
+            <div class="frag-canvas"></div>
+            <div class="frag-table">
+                <div class="f-t-general-instr">Click on a fragment to add it to the molecule's Fragment Space</div>
+            </div>
         </div>
         
         <div class="info-section">
-            <div class="spec-info">33333</div>
+            <div class="spec-info">
+                <!-- Insert Chemdoodle el directly into spec-info div might be more beneficial -->
+                 <div class="sample-spec"></div>
+            </div>
             <div class="si-left-section">
-                <div class="mol-info">22222</div>
-                <div class="spec-desc">Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus. Aenean leo ligula, porttitor eu, consequat vitae, eleifend ac, enim. Aliquam lorem ante, dapibus in, viverra quis, feugiat a, tellus. Phasellus viverra nulla ut metus varius laoreet. Quisque rutrum. Aenean imperdiet. Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies nisi. Nam eget dui. Etiam rhoncus. Maecenas tempus, tellus eget condimentum rhoncus, sem quam semper libero, sit amet adipiscing sem neque sed ipsum. Nam quam nunc, blandit vel, luctus pulvinar, hendrerit id, lorem. Maecenas nec odio et ante tincidunt tempus. Donec vitae sapien ut libero venenatis faucibus. Nullam quis ante. Etiam sit amet orci eget eros faucibus tincidunt. Duis leo. Sed fringilla mauris sit amet nibh. Donec sodales sagittis magna. Sed consequat, leo eget bibendum sodales, augue velit cursus nunc,</div>
+                <div class="mol-info">
+                    <!-- Insert directly into spec-info div might be more beneficial -->
+                     <div class="sample-mol"></div>
+                </div>
+                <div class="spec-desc">Lorem ipsum dolor sit amet, consectetuer adipiscing elit. 
+                    Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus 
+                    et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, 
+                    ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis 
+                    enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. 
+                    In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum 
+                    felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum 
+                    semper nisi. Aenean vulputate eleifend tellus. Aenean leo ligula, porttitor eu,
+                    consequat vitae, eleifend ac, enim. Aliquam lorem ante, dapibus in, viverra quis, 
+                    feugiat a, tellus. Phasellus viverra nulla ut metus varius laoreet. Quisque rutrum. 
+                    Aenean imperdiet. Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies nisi. 
+                    Nam eget dui. Etiam rhoncus. Maecenas tempus, tellus eget condimentum rhoncus, sem 
+                    quam semper libero, sit amet adipiscing sem neque sed ipsum. Nam quam nunc, blandit 
+                    vel, luctus pulvinar, hendrerit id, lorem. Maecenas nec odio et ante tincidunt tempus.
+                     Donec vitae sapien ut libero venenatis faucibus. Nullam quis ante. Etiam sit amet orci
+                      eget eros faucibus tincidunt. Duis leo. Sed fringilla mauris sit amet nibh. Donec 
+                      sodales sagittis magna. Sed consequat, leo eget bibendum sodales, augue velit cursus nunc,</div>
             </div>
         </div>
     </div>
-
+    <div class="copyright">
+        Copyright © 2025 Dr. Jeffrey A. Hansen - All Rights Reserved.
+    </div>
+    
+    <script src="main.js"></script>
 </body>
+
+
 </html>
