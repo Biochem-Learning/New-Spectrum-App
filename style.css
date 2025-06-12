@@ -199,7 +199,6 @@ header {
     display: none;
 }
 
-
 .f-t-general-instr {
     text-align: center;
     cursor: move;
@@ -209,4 +208,39 @@ header {
 .copyright {
     background: var(--background-color);
     text-align: center;
+}
+
+.fa-regular.fa-circle-question {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3em;
+    color: black;
+}
+
+.u-s-right-header {
+    width: 35%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+.spec-instr, .mol-instr, .spec-desc-instr {
+    position: fixed;
+}
+
+.spec-instr {
+    right: 380px;
+    top: 305px;
+}
+
+.mol-instr {
+    right: 100px;
+    top: 300px;
+}
+
+.spec-desc-instr {
+    color: aliceblue !important;
+    right: 55px;
+    top: 505px;
 }

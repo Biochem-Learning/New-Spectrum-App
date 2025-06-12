@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Overpass:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="https://kit.fontawesome.com/409dbfc954.js" crossorigin="anonymous"></script>
 </head>
 <body>
     <header>
@@ -27,7 +28,10 @@
         <div class="user-section">
             <div class="u-s-header"> 
                 <div class="u-s-name">Fragment Space</div>
-                <button class="frag-table-button">Open Fragment Table</button>
+                <div class="u-s-right-header">
+                    <i class="fa-regular fa-circle-question"></i>
+                    <button class="frag-table-button">Open Fragment Table</button>
+                </div>
             </div>
             <div class="frag-canvas"></div>
             <div class="frag-table">
@@ -39,12 +43,16 @@
             <div class="spec-info">
                 <!-- Insert Chemdoodle el directly into spec-info div might be more beneficial -->
                  <div class="sample-spec"></div>
+                 <i class="fa-regular fa-circle-question spec-instr"></i>
             </div>
             <div class="si-left-section">
                 <div class="mol-info">
+                    <i class="fa-regular fa-circle-question mol-instr"></i>
                     <!-- Insert directly into spec-info div might be more beneficial -->
                      <div class="sample-mol"></div>
                 </div>
+
+                <i class="fa-regular fa-circle-question spec-desc-instr"></i>
                 <div class="spec-desc">Lorem ipsum dolor sit amet, consectetuer adipiscing elit. 
                     Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus 
                     et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, 
