@@ -51,41 +51,33 @@ document.addEventListener("click", function() {
 dragElement(".frag-table", ".f-t-general-instr");
 
 function dragElement(elementName, elementHeader) {
-    // Correctly declare 'element' to keep it within this function's scope
     let element = document.querySelector(elementName);
 
-    // Check if the main element exists
     if (!element) {
         console.error(`Element with selector "${elementName}" not found. Cannot make it draggable.`);
         return;
     }
 
-    // Initialize position variables within the scope of dragElement
-    // so they are unique for each draggable element if you call dragElement multiple times
     let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
 
-    // Determine which element will be the "handle" for dragging
-    let dragHandle = element; // Default: the element itself is the handle
-    if (elementHeader) { // If an elementHeader selector is provided
+    let dragHandle = element;
+    if (elementHeader) { 
         const headerElement = document.querySelector(elementHeader);
         if (headerElement) {
-            dragHandle = headerElement; // Use the header as the drag handle
+            dragHandle = headerElement; 
         } else {
             console.warn(`Element header with selector "${elementHeader}" not found. Using main element as drag handle.`);
         }
     }
 
-    // Set initial cursor and touch-action for the draggable element
     element.style.cursor = 'grab';
-    element.style.touchAction = 'none'; // Prevents default touch behaviors like scrolling/zooming
+    element.style.touchAction = 'none';
 
-    // Attach event listeners to the drag handle
-    dragHandle.onmousedown = dragStart;   // For desktop mouse drag
-    dragHandle.ontouchstart = dragStart; // For mobile touch drag
+    dragHandle.onmousedown = dragStart;   
+    dragHandle.ontouchstart = dragStart;
 
 
     // --- Core Drag Functions ---
-
     function dragStart(e) {
         e = e || window.event;
         e.preventDefault(); 
@@ -106,7 +98,7 @@ function dragElement(elementName, elementHeader) {
         if (e.type === 'touchstart') {
             document.ontouchend = dragEnd;
             document.ontouchmove = elementDrag;
-        } else { // mousedown
+        } else {
             document.onmouseup = dragEnd;
             document.onmousemove = elementDrag;
         }
@@ -168,4 +160,77 @@ function dragElement(elementName, elementHeader) {
 window.onbeforeunload = function() {
   return "Data will be lost if you leave the page, are you sure?";
 };
+
+/// Display molecules and spectral graph
+
+let gameWidth = window.innerWidth <= 1140 && window.innerWidth < window.innerHeight ? 90 : 60;
+
+function setUpCanvas(canvasId, width, height) {
+	// const options = {
+	// 	useService: true,
+	// 	oneMolecule: true,
+	// 	// isMobile: true,
+	// };
+
+	ChemDoodle.ELEMENT["H"].jmolColor = "black";
+	ChemDoodle.ELEMENT["S"].jmolColor = "#B9A130";
+	const canvas = new ChemDoodle.ViewerCanvas(
+        canvasId, 
+        width,
+        height,
+        // options
+    );
+
+	canvas.styles.atoms_displayTerminalCarbonLabels_2D = true;
+	canvas.styles.atoms_useJMOLColors = true;
+	canvas.styles.bonds_clearOverlaps_2D = true;
+	canvas.styles.shapes_color = "c10000";
+    canvas.repaint();
+	return canvas;
+};
+
+
+/// Calculate the width or height of an element relative to their parent div
+function percentage(divSelector, percentage, dimension) {
+    div = document.querySelector(divSelector);
+
+    if (!div) {
+        console.error(`Element with selector "${divSelector}" not found.`);
+        return null;
+    }
+
+    parent = div.parentNode;
+    
+    if (!parent) {
+        console.error(`Element with selector "${divSelector}" has no parent.`);
+        return null;
+    }
+
+    parentDimension = (dimension === "width") ? parent.offsetWidth : parent.offsetHeight 
+    caculatedDimension = parentDimension * percentage / 100;
+
+    return caculatedDimension
+}
+
+const molCanvasId = "sample-mol";
+const specCanvasId = "sample-spec"
+
+let molCanvas = setUpCanvas(
+    molCanvasId,
+    percentage("#" + molCanvasId, 90, "width"), 
+    percentage("#" + molCanvasId, 90, "height"),
+);
+
+let specCanvas = setUpCanvas(
+    specCanvasId,
+    percentage("#" + specCanvasId, 95, "width"), 
+    percentage("#" + specCanvasId, 95, "height"),
+);
+
+molCanvas.emptyMessage = 'No Data Loaded!';
+let caffeineMolFile =
+    'Molecule Name\n  CHEMDOOD08070920033D 0   0.00000     0.00000     0\n[Insert Comment Here]\n 14 15  0  0  0  0  0  0  0  0  1 V2000\n   -0.3318    2.0000    0.0000   O 0  0  0  1  0  0  0  0  0  0  0  0\n   -0.3318    1.0000    0.0000   C 0  0  0  1  0  0  0  0  0  0  0  0\n   -1.1980    0.5000    0.0000   N 0  0  0  1  0  0  0  0  0  0  0  0\n    0.5342    0.5000    0.0000   C 0  0  0  1  0  0  0  0  0  0  0  0\n   -1.1980   -0.5000    0.0000   C 0  0  0  1  0  0  0  0  0  0  0  0\n   -2.0640    1.0000    0.0000   C 0  0  0  4  0  0  0  0  0  0  0  0\n    1.4804    0.8047    0.0000   N 0  0  0  1  0  0  0  0  0  0  0  0\n    0.5342   -0.5000    0.0000   C 0  0  0  1  0  0  0  0  0  0  0  0\n   -2.0640   -1.0000    0.0000   O 0  0  0  1  0  0  0  0  0  0  0  0\n   -0.3318   -1.0000    0.0000   N 0  0  0  1  0  0  0  0  0  0  0  0\n    2.0640   -0.0000    0.0000   C 0  0  0  2  0  0  0  0  0  0  0  0\n    1.7910    1.7553    0.0000   C 0  0  0  4  0  0  0  0  0  0  0  0\n    1.4804   -0.8047    0.0000   N 0  0  0  1  0  0  0  0  0  0  0  0\n   -0.3318   -2.0000    0.0000   C 0  0  0  4  0  0  0  0  0  0  0  0\n  1  2  2  0  0  0  0\n  3  2  1  0  0  0  0\n  4  2  1  0  0  0  0\n  3  5  1  0  0  0  0\n  3  6  1  0  0  0  0\n  7  4  1  0  0  0  0\n  4  8  2  0  0  0  0\n  9  5  2  0  0  0  0\n 10  5  1  0  0  0  0\n 10  8  1  0  0  0  0\n  7 11  1  0  0  0  0\n  7 12  1  0  0  0  0\n 13  8  1  0  0  0  0\n 13 11  2  0  0  0  0\n 10 14  1  0  0  0  0\nM  END\n> <DATE>\n07-08-2009\n';
+let caffeine = ChemDoodle.readMOL(caffeineMolFile);
+molCanvas.loadMolecule(caffeine);
+
 
