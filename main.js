@@ -3,6 +3,8 @@ const MOL_CANVAS_HEIGHT = 90;
 const SPEC_CANVAS_WIDTH = 95;
 const SPEC_CANVAS_HEIGHT = 95;
 
+let displayingMol = "Ethanol"
+
 function displayOrHideElement(elementName) {
     const element = document.querySelector(elementName);
 
@@ -168,8 +170,8 @@ window.onbeforeunload = function() {
 
 /// Display molecules and spectral graph
 
-async function getData(url = "") {
-    const response = await fetch(url);
+async function getData(path = "") {
+    const response = await fetch(path);
 
     if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status} - Could not load JDX from URL.`);
@@ -180,9 +182,25 @@ async function getData(url = "") {
     return jdxContentString;
 }
 
+async function setUpCanvas(path='') {
+    removeCanvas("sample_molecule")
+    removeCanvas("sample_spectrum")
 
+    let data = await getData(path) 
 
-function percentage(divSelector, percentage, dimension) {
+    let canvas = new ChemDoodle.io.JCAMPInterpreter().makeStructureSpectrumSet(
+        'sample', 
+        data, 
+        percentage("#sample_molecule", MOL_CANVAS_WIDTH, "width"), 
+        percentage("#sample_molecule", MOL_CANVAS_HEIGHT, "height"), 
+        percentage("#sample_spectrum", SPEC_CANVAS_WIDTH, "width"), 
+        percentage("#sample_spectrum", SPEC_CANVAS_HEIGHT, "height"),
+    )
+}
+
+setUpCanvas('data/Spectra/MS/' + displayingMol + 'MS.jdx');
+
+function getDivAndParentEl(divSelector) {
     div = document.querySelector(divSelector);
 
     if (!div) {
@@ -197,6 +215,22 @@ function percentage(divSelector, percentage, dimension) {
         return null;
     }
 
+    return {
+        element: div,
+        parent: parent
+
+    };
+}
+
+function percentage(divSelector, percentage, dimension) {
+    let divAndParent = getDivAndParentEl(divSelector)
+
+    if (!divAndParent) {
+        return
+    }
+
+    let parent = divAndParent.parent;
+
     parentDimension = (dimension === "width") ? parent.offsetWidth : parent.offsetHeight 
     caculatedDimension = parentDimension * percentage / 100;
 
@@ -207,12 +241,29 @@ async function initializeCanvas(canvas, url="") {
     
 }
 
-function createSubmenu(menuFilePath, id) {
-    let menuHeader = document.querySelector(".nav-bar");
+function removeCanvas(canvasId) {
+	let canvasAndParent = getDivAndParentEl("#" + canvasId);
 
-    let list = document.createElement("ul");
-    list.classList.add('submenu');
-    list.id = id;
+    if (!canvasAndParent) {
+        return
+    }
+
+    let canvas = canvasAndParent.element;
+    let parent = canvasAndParent.parent;
+    let newCanvas = document.createElement("canvas");
+    
+    newCanvas.id = canvasId;
+
+	parent.replaceChild(newCanvas, canvas);
+}
+
+async function createCompoundSubmenu(menuFilePath) {
+    let dropdownMenu = document.querySelector(".dropdown");  
+
+    let ddContentWrapper = document.createElement("div");
+    ddContentWrapper.classList.add("dropdown-content");
+
+    dropdownMenu.appendChild(ddContentWrapper);
 
     fetch(menuFilePath)
     .then(response => response.text())
@@ -221,20 +272,36 @@ function createSubmenu(menuFilePath, id) {
         const itemArray = lines.map(line => line.trim()).filter(line => line !== '');
         
         for(let i = 0; i < itemArray.length; i += 1) {
-            let subItem = document.createElement("li");
+            let subItem = document.createElement("a");
             subItem.textContent = itemArray[i];
-            subItem.id = "menu-item-" + i;
-            subItem.classList.add('nav-bar-section');
-            list.appendChild(subItem);
+            subItem.id = "dropdown-item-" + i;
+            subItem.classList.add('dropdown-item');
+            ddContentWrapper.appendChild(subItem);
+
+            subItem.addEventListener('click', function(event) {
+                event.preventDefault(); // Prevent default link behavior if you're handling navigation with JS
+                displayingMol = itemArray[i];
+                setUpCanvas('data/Spectra/MS/' + itemArray[i] + 'MS.jdx')
+            });
         }
     })
     .catch(error => console.error('Error reading file:', error));
 
-    menuHeader.appendChild(list)
+    dropdownMenu.appendChild(ddContentWrapper)
 }
 
-// createSubmenu("data/Spectra/CompondMenu.txt", "compound-submenu")
 
-// document.querySelector("#menu-item-1").addEventListener("click", function() {
-//     displayOrHideElement(".frag-table");
-// });
+function refreshCanvas() {
+
+}
+
+createCompoundSubmenu("data/Spectra/CompondMenu.txt")
+
+document.querySelectorAll(".nav-bar-section").forEach(button => {
+    button.addEventListener("click", function() {
+        if (this.id === "compounds") {
+            return;
+        }
+        setUpCanvas('data/Spectra/' + this.id + '/' + displayingMol + this.id + '.jdx') 
+    });
+})
