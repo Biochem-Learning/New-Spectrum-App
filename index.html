@@ -19,11 +19,11 @@
     </header>
 
     <div class="nav-bar">  
-        <div class="nav-bar-section">Compounds</div> 
-        <div class="nav-bar-section">Mass Spectrum</div>
-        <div class="nav-bar-section">Infrared</div>
-        <div class="nav-bar-section">HNMR</div>
-        <div class="nav-bar-section">CNMR</div>
+        <div class="nav-bar-section" id="compounds">Compounds</div> 
+        <div class="nav-bar-section" id="mass-spectrum">Mass Spectrum</div>
+        <div class="nav-bar-section" id="infrared">Infrared</div>
+        <div class="nav-bar-section" id="hnmr">HNMR</div>
+        <div class="nav-bar-section" id="cnmr">CNMR</div>
     </div>
 
     <div class="main-section">
@@ -44,14 +44,14 @@
         <div class="info-section">
             <div class="spec-info">
                 <!-- Insert Chemdoodle el directly into spec-info div might be more beneficial -->
-                 <canvas id="sample-spec"></canvas>
+                 <canvas id="sample_spectrum"></canvas>
                  <i class="fa-regular fa-circle-question spec-instr"></i>
             </div>
             <div class="si-left-section">
                 <div class="mol-info">
                     <i class="fa-regular fa-circle-question mol-instr"></i>
                     <!-- Insert directly into spec-info div might be more beneficial -->
-                     <canvas id="sample-mol"></canvas>
+                     <canvas id="sample_molecule" style="width: 90% !important; height: 190% !important;"></canvas>
                 </div>
 
                 

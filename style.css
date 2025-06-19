@@ -137,12 +137,15 @@ header {
     display: none;
 }
 
-#sample-mol {
+#sample_molecule {
+
     border-radius: var(--border-radius);
 }
 
-#sample-spec {
+#sample_spectrum {
+
     border-radius: var(--border-radius);
+    
 }
 
 /***User Section**/
@@ -286,7 +289,7 @@ header {
     }
 
     .mol-info {
-        width: 30%;
+        width: 70%;
         height: 100%;
         border-top: var(--border-setting);
         border-bottom: 0;
@@ -299,3 +302,19 @@ header {
     }
 
 }
+
+.submenu {
+    position:absolute;
+    list-style-type: none;
+    left: 410px;
+    top: 110px;
+    margin: 0;
+    padding: 0;
+}
+
+/* #compunds {
+    position: relative;
+} */
+
+/*what I can do, set a static height for the nav-div, then add the compound div as an element of the list,
+ then allows the list to be overflowed*/
