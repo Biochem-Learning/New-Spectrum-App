@@ -1,0 +1,40 @@
+{
+    "name": "2-Pentanone",
+    "description": "Looking at the structure of 2-pentanone, we anticipate C-H and C=O stretching vibration signals in the IR, a methyl singlet and signals for a propyl group in the HNMR, and 5 different signals in the CNMR one of which will have a high chemical shift.",
+    "specName": "2-Pentanone",
+    "spectra_info": {
+        "MS": {
+            "general_description": "What is the molecular weight of 2-pentanone?",
+            "peaks": [
+            { "x": "43", "description": "A fragmentation peak." },
+            { "x": "86", "description": "The molecular ion peak." }
+            ]
+        },
+        "IR": {
+            "general_description": "We see what we expect in this spectrum. The most prominent signal is for the carbonyl group of the ketone at about 1713 1/cm.",
+            "peaks": [
+            { "x": "2963", "description": "2963 1/cm" },
+            { "x": "1713", "description": "1713 1/cm" }
+            ]
+        },
+        "HNMR": {
+            "general_description": "The methyl group next to the ketone is readily identifiable as a singlet at about 2.1 ppm. The propryl group makes a pattern you should become familiar with. The first CH2 signal (integration of 2) is a triplet because it has 2 neighbors. The second CH2 signal (integration of 2) has six peaks because it has 5 neighbors, 2 on one side and 3 on the other. Finally, the methyl group signal at 0.85 ppm (integration of 3) is also a triplet (2 neighbors).",
+            "peaks": [
+            { "x": "0.8535", "description": "Triplet at 0.85 ppm." },
+            { "x": "1.55", "description": "Sextet at 1.55 ppm." },
+            { "x": "2.07", "description": "Singlet at 2.1 ppm." },
+            { "x": "2.35", "description": "Triplet at 2.35 ppm." }
+            ]
+        },
+        "CNMR": {
+            "general_description": "2-Pentanone CNMR Description",
+            "peaks": [
+            { "x": "13.71", "description": "13.71 ppm" },
+            { "x": "17.3", "description": "17.30 ppm" },
+            { "x": "29.9", "description": "29.90 ppm" },
+            { "x": "45.69", "description": "45.69 ppm" },
+            { "x": "209.31", "description": "209.31 ppm" }
+            ]
+        }
+    }
+}

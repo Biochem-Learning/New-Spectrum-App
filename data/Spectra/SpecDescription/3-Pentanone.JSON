@@ -1,0 +1,36 @@
+{
+    "name": "3-Pentanone",
+    "description": "The key for structures like 3-Pentanone is to recognize the symmetry in the molecule. Clues to this come from the small number of HNMR and CNMR signals and the molecular weight which indicates more than the 3 carbons that are evident from the NMR.",
+    "specName": "3-Pentanone",
+    "spectra_info": {
+        "MS": {
+            "general_description": "What is the molecular weight of 3-pentanone?",
+            "peaks": [
+                { "x": "57", "description": "This peak comes from loss of an ethyl group (mass of 29) from the molecular ion to produce a fragment with mass of 57." },
+                { "x": "86", "description": "This is the molecular ion for 3-pentanone which has a molecular weight of 86." }
+            ]
+        },
+        "IR": {
+            "general_description": "3-Pentanone IR Description",
+            "peaks": [
+                { "x": "2977", "description": "This is from sp3 C-H stretching." },
+                { "x": "1712", "description": "This is from the carbonyl, C=O, stretching. Add the C=O to the Fragment Space." }
+            ]
+        },
+        "HNMR": {
+            "general_description": "Together the signals in this spectrum make a common pattern – the ethyl group pattern of a 2H quartet and a 3H triplet. Add the appropriate fragment from the fragment table.",
+            "peaks": [
+                { "x": "2.35", "description": "This is the signal for the CH2 group. It is shifted to 2.35 ppm because it is next to a carbonyl group. It has an integration of 2H and is a quartet because it has 3 neighbors (the CH3 group). If you haven't already, add the appropriate fragment from the fragment table." },
+                { "x": "0.98", "description": "This is the signal for the CH3 group. It has an integration of 3H and is a triplet because it has 2 neighbors (the CH2 group). If you haven't already, add the appropriate fragment from the fragment table." }
+            ]
+        },
+        "CNMR": {
+            "general_description": "3-Pentanone CNMR Description",
+            "peaks": [
+                { "x": "7.89", "description": "Signal for the methyl groups." },
+                { "x": "35.46", "description": "Signal for the CH2 groups." },
+                { "x": "212.31", "description": "Signal for the carbonyl group. If you haven't already, add the carbonyl fragment from the fragment table." }
+            ]
+        }
+    }
+}
