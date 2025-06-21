@@ -6,10 +6,10 @@
         "MS": {
             "general_description": "A good practice for determining a structure from its spectra is to begin with the Mass Spectrum. We want to determine the molecular weight from the MS and use this along with clues from other spectra to determine the molecular formula of the compound. The molecular formula will allow us to calculate the IHD which will help us figure out if the structure has any rings or multiple bonds.",
             "peaks": [
-                { "x": "31", "description": "This signal is from the molecule fragmenting by losing the CH3 group." },
-                { "x": "45", "description": "This signal is from the molecule fragmenting by simply losing one hydrogen atom from the carbon next to the OH." },
-                { "x": "46", "description": "This is the molecular ion signal which shows that the molecular weight of this compound is 46. How do we know the molecular weight is 46 and not 45? We know that it is normal to see a very small peak (called the M+1 peak) with a mass one greater than the molecular weight due to isotopes of carbon and hydrogen. Since the M+1 peak should be very small, we know that the signal at 45 can't be for the molecular weight because the peak at 46 is too large to be from isotopes. So 46 must be the molecular ion peak and 45 must be from loss of a hydrogen." },
-                { "x": "47", "description": "This is the M+1 peak. It is present because some molecules will contain an isotope of carbon with a mass of 13 instead of a mass of 12 or a hydrogen with a mass of 2 instead of a mass of 1." }
+                { "x": 31, "description": "This signal is from the molecule fragmenting by losing the CH3 group." },
+                { "x": 45, "description": "This signal is from the molecule fragmenting by simply losing one hydrogen atom from the carbon next to the OH." },
+                { "x": 46, "description": "This is the molecular ion signal which shows that the molecular weight of this compound is 46. How do we know the molecular weight is 46 and not 45? We know that it is normal to see a very small peak (called the M+1 peak) with a mass one greater than the molecular weight due to isotopes of carbon and hydrogen. Since the M+1 peak should be very small, we know that the signal at 45 can't be for the molecular weight because the peak at 46 is too large to be from isotopes. So 46 must be the molecular ion peak and 45 must be from loss of a hydrogen." },
+                { "x": 47, "description": "This is the M+1 peak. It is present because some molecules will contain an isotope of carbon with a mass of 13 instead of a mass of 12 or a hydrogen with a mass of 2 instead of a mass of 1." }
             ]
         },
         "IR": {

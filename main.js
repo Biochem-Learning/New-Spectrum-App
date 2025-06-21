@@ -169,36 +169,47 @@ window.onbeforeunload = function() {
 };
 
 /// Display molecules and spectral graph
-
 async function getData(path = "") {
     const response = await fetch(path);
 
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status} - Could not load JDX from URL.`);
+        throw new Error(`HTTP error! status: ${response.status} - Could not load file from URL.`);
     }
 
-    const jdxContentString = await response.text();
+    const contentString = await response.text();
     
-    return jdxContentString;
+    return contentString;
 }
 
-async function setUpCanvas(path='') {
-    removeCanvas("sample_molecule")
-    removeCanvas("sample_spectrum")
+/// !!!NOTICE: For anyone who try to work on this part, the original ChemDoodle lib only support 
+
+async function setUpCanvas(path='', molCanvasId, specCanvasId) {
+    removeCanvas(molCanvasId)
+    removeCanvas(specCanvasId)
 
     let data = await getData(path) 
 
     let canvas = new ChemDoodle.io.JCAMPInterpreter().makeStructureSpectrumSet(
         'sample', 
         data, 
-        percentage("#sample_molecule", MOL_CANVAS_WIDTH, "width"), 
-        percentage("#sample_molecule", MOL_CANVAS_HEIGHT, "height"), 
-        percentage("#sample_spectrum", SPEC_CANVAS_WIDTH, "width"), 
-        percentage("#sample_spectrum", SPEC_CANVAS_HEIGHT, "height"),
+        percentage("#" + molCanvasId, MOL_CANVAS_WIDTH, "width"), 
+        percentage("#" + molCanvasId, MOL_CANVAS_HEIGHT, "height"), 
+        percentage("#" + specCanvasId, SPEC_CANVAS_WIDTH, "width"), 
+        percentage("#" + specCanvasId, SPEC_CANVAS_HEIGHT, "height"),
     )
+
+    console.log(canvas);
+    return canvas;
 }
 
-setUpCanvas('data/Spectra/MS/' + displayingMol + 'MS.jdx');
+const MOL_CANVAS_ID = "sample_molecule";
+const SPEC_CANVAS_ID = "sample_spectrum";
+let canvases = setUpCanvas(
+    'data/Spectra/MS/' + displayingMol + 'MS.jdx',
+    MOL_CANVAS_ID,
+    SPEC_CANVAS_ID
+);
+
 
 function getDivAndParentEl(divSelector) {
     div = document.querySelector(divSelector);
@@ -281,7 +292,10 @@ async function createCompoundSubmenu(menuFilePath) {
             subItem.addEventListener('click', function(event) {
                 event.preventDefault(); // Prevent default link behavior if you're handling navigation with JS
                 displayingMol = itemArray[i];
-                setUpCanvas('data/Spectra/MS/' + itemArray[i] + 'MS.jdx')
+                setUpCanvas('data/Spectra/MS/' + itemArray[i] + 'MS.jdx',
+                    MOL_CANVAS_ID,
+                    SPEC_CANVAS_ID
+                )
             });
         }
     })
@@ -302,6 +316,158 @@ document.querySelectorAll(".nav-bar-section").forEach(button => {
         if (this.id === "compounds") {
             return;
         }
-        setUpCanvas('data/Spectra/' + this.id + '/' + displayingMol + this.id + '.jdx') 
+        setUpCanvas('data/Spectra/' + this.id + '/' + displayingMol + this.id + '.jdx',
+            MOL_CANVAS_ID,
+            SPEC_CANVAS_ID
+        ) 
     });
 })
+
+async function getDataJSON(jsonPath) {
+    const response = await getData(jsonPath);
+    const dataObject = JSON.parse(response);
+
+    return dataObject;
+}
+
+// You can attach a mousemove listener directly to the ChemDoodle Canvas instance
+// canvases.then(canvasesArray => {
+//     let spectrumData = canvasesArray[1].spectrum.data;
+//     let dataLength = spectrumData.length;
+//     console.log("Total data points:", dataLength);
+
+//     let plotMinDataX = Math.min(spectrumData[0].x, spectrumData[dataLength - 1].x); 
+//     let plotMaxDataX = Math.max(spectrumData[0].x, spectrumData[dataLength - 1].x); 
+
+//     let dataRange = plotMaxDataX - plotMinDataX;
+//     console.log("Data range:", dataRange);
+
+//     let canvasWidth = canvasesArray[1].width;
+//     console.log("Canvas total pixel width:", canvasWidth);
+
+//     let targetCanvasElement = document.querySelector("#sample_spectrum");
+
+//     targetCanvasElement.addEventListener("mousemove", function(event) {
+//         const xCoordinate = event.offsetX; // Pixel X position relative to the canvas element
+
+//         let calculatedDataX = plotMaxDataX - (xCoordinate / canvasWidth) * dataRange;
+
+//         console.log(`Mouse X position (pixel): ${xCoordinate.toFixed(0)}px`);
+//         console.log(`Estimated Data X position (flipped axis): ${calculatedDataX.toFixed(0)}`);
+
+//         let textBox  = document.querySelector(".spec-desc")
+
+//         getDataJSON("data/Spectra/SpecDescription/2-Pentanone.json").then(text => {
+//             if (calculatedDataX.toFixed(0) == 31) {
+//                 textBox.innerHTML = text.description;
+//                 console.log(text.description);
+//             }
+//             else {
+//                  textBox.innerHTML = text.name;
+//                 console.log(text.name);
+//             }
+            
+//         })
+//     });
+
+// }).catch(error => {
+//     // This code runs if any Promise in the chain (getData or makeStructureSpectrumSet) rejects
+//     console.error("An error occurred during canvas setup:", error);
+// });
+
+async function setupSpectrumInteractivity(canvases, mode, path) {
+    try {
+        const canvasesArray = await canvases;
+
+        let specCanvas = canvasesArray[1];
+
+        let targetCanvasElement = document.querySelector("#sample_spectrum");
+
+        targetCanvasElement.addEventListener("mousemove", async function(event) {
+            const xCoordinate = event.offsetX; 
+
+            let calculatedDataX = convertPxToChem(specCanvas, xCoordinate);
+            console.log("Real X Coordinate " + xCoordinate)
+            console.log("Converted X Coordinate " + calculatedDataX)
+
+            displayTextWhenHovered("data/Spectra/SpecDescription/Ethanol.json", calculatedDataX, "MS")
+        });
+
+    } catch (mainSetupError) {
+        console.error("An error occurred during initial spectrum setup:", mainSetupError);
+    }
+}
+
+
+function convertPxToChem(canvas, xCoordinate) {
+    let spectrumData = canvas.spectrum.data;
+    let dataLength = spectrumData.length;
+    // console.log("Total data points:", dataLength);
+
+    let plotMinDataX = Math.min(spectrumData[0].x, spectrumData[dataLength - 1].x);
+    let plotMaxDataX = Math.max(spectrumData[0].x, spectrumData[dataLength - 1].x);
+
+    let dataRange = plotMaxDataX - plotMinDataX;
+    // console.log("Data range:", dataRange);
+
+    let canvasWidth = canvas.width;
+    // console.log("Canvas total pixel width:", canvasWidth);
+
+    let calculatedDataX = plotMaxDataX - (xCoordinate / canvasWidth) * dataRange;
+
+    return calculatedDataX.toFixed(0);
+}
+/// Things need to be done:
+/// - Add function for text description for each viewing mode
+/// - Add ratio calculation for viewing mode other than MS 
+/// - Need to return the text to general description when hover out of the canvas
+
+async function displayTextWhenHovered(path, hoveredX, mode="", elSelector=".spec-desc") {
+    let textBox = document.querySelector(elSelector); 
+    
+    try {
+        const specJSON = await getDataJSON(path);
+        if (mode === "") {
+            textBox.innerText = specJSON.description;
+            console.log(specJSON.general_description);
+        }
+        else {
+            let modeObj;
+            switch (mode) {
+                case "MS":
+                    modeObj = specJSON.spectra_info.MS;
+                    break
+                case "IR":
+                    modeObj = specJSON.spectra_info.IR;
+                    break
+                case "HNMR":
+                    modeObj = specJSON.spectra_info.HNMR;
+                    break
+                case "CNMR":
+                    modeObj = specJSON.spectra_info.CNMR;
+                    break
+            }
+
+            let peaksArray = modeObj.peaks
+
+            textBox.innerText = modeObj.general_description;
+
+            for(let i = 0; i < peaksArray.length; i += 1)  {
+                if (hoveredX == peaksArray[i].x) {
+                    textBox.innerHTML = peaksArray[i].description;
+                }
+            }
+        }
+        
+    } catch (jsonError) {
+        console.error("Error fetching or parsing JSON in mousemove:", jsonError);
+        textBox.innerHTML = "Error loading description."; // Inform user of error
+    }
+}
+
+setupSpectrumInteractivity(canvases)
+
+function displayText() {
+
+}
+

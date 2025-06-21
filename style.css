@@ -16,6 +16,8 @@ html, body {
     font-family: var(--font);
 }
 
+/**Add media query so that the size of the body be fixed after the height is scaled down enough**/
+
 html {
     height: 100%; 
 }
@@ -138,7 +140,7 @@ header {
     overflow-y: scroll;
 }
 
-.spec-desc::-webkit-scrollbar {
+body::-webkit-scrollbar, .spec-desc::-webkit-scrollbar {
     display: none;
 }
 
