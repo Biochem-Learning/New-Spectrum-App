@@ -292,10 +292,12 @@ async function createCompoundSubmenu(menuFilePath) {
             subItem.addEventListener('click', function(event) {
                 event.preventDefault(); // Prevent default link behavior if you're handling navigation with JS
                 displayingMol = itemArray[i];
-                setUpCanvas('data/Spectra/MS/' + itemArray[i] + 'MS.jdx',
+                canvases = setUpCanvas('data/Spectra/MS/' + displayingMol + 'MS.jdx',/// Might change to return instead
                     MOL_CANVAS_ID,
                     SPEC_CANVAS_ID
                 )
+
+                setupSpectrumInteractivity(canvases, "MS", displayingMol)
             });
         }
     })
@@ -316,10 +318,12 @@ document.querySelectorAll(".nav-bar-section").forEach(button => {
         if (this.id === "compounds") {
             return;
         }
-        setUpCanvas('data/Spectra/' + this.id + '/' + displayingMol + this.id + '.jdx',
+        canvases = setUpCanvas('data/Spectra/' + this.id + '/' + displayingMol + this.id + '.jdx',
             MOL_CANVAS_ID,
             SPEC_CANVAS_ID
         ) 
+
+        setupSpectrumInteractivity(canvases, this.id, displayingMol)
     });
 })
 
@@ -330,52 +334,8 @@ async function getDataJSON(jsonPath) {
     return dataObject;
 }
 
-// You can attach a mousemove listener directly to the ChemDoodle Canvas instance
-// canvases.then(canvasesArray => {
-//     let spectrumData = canvasesArray[1].spectrum.data;
-//     let dataLength = spectrumData.length;
-//     console.log("Total data points:", dataLength);
 
-//     let plotMinDataX = Math.min(spectrumData[0].x, spectrumData[dataLength - 1].x); 
-//     let plotMaxDataX = Math.max(spectrumData[0].x, spectrumData[dataLength - 1].x); 
-
-//     let dataRange = plotMaxDataX - plotMinDataX;
-//     console.log("Data range:", dataRange);
-
-//     let canvasWidth = canvasesArray[1].width;
-//     console.log("Canvas total pixel width:", canvasWidth);
-
-//     let targetCanvasElement = document.querySelector("#sample_spectrum");
-
-//     targetCanvasElement.addEventListener("mousemove", function(event) {
-//         const xCoordinate = event.offsetX; // Pixel X position relative to the canvas element
-
-//         let calculatedDataX = plotMaxDataX - (xCoordinate / canvasWidth) * dataRange;
-
-//         console.log(`Mouse X position (pixel): ${xCoordinate.toFixed(0)}px`);
-//         console.log(`Estimated Data X position (flipped axis): ${calculatedDataX.toFixed(0)}`);
-
-//         let textBox  = document.querySelector(".spec-desc")
-
-//         getDataJSON("data/Spectra/SpecDescription/2-Pentanone.json").then(text => {
-//             if (calculatedDataX.toFixed(0) == 31) {
-//                 textBox.innerHTML = text.description;
-//                 console.log(text.description);
-//             }
-//             else {
-//                  textBox.innerHTML = text.name;
-//                 console.log(text.name);
-//             }
-            
-//         })
-//     });
-
-// }).catch(error => {
-//     // This code runs if any Promise in the chain (getData or makeStructureSpectrumSet) rejects
-//     console.error("An error occurred during canvas setup:", error);
-// });
-
-async function setupSpectrumInteractivity(canvases, mode, path) {
+async function setupSpectrumInteractivity(canvases, mode, molecule) {
     try {
         const canvasesArray = await canvases;
 
@@ -387,10 +347,10 @@ async function setupSpectrumInteractivity(canvases, mode, path) {
             const xCoordinate = event.offsetX; 
 
             let calculatedDataX = convertPxToChem(specCanvas, xCoordinate);
-            console.log("Real X Coordinate " + xCoordinate)
+            // console.log("Real X Coordinate " + xCoordinate)
             console.log("Converted X Coordinate " + calculatedDataX)
 
-            displayTextWhenHovered("data/Spectra/SpecDescription/Ethanol.json", calculatedDataX, "MS")
+            displayTextWhenHovered("data/Spectra/SpecDescription/" + molecule +".json", calculatedDataX, mode)
         });
 
     } catch (mainSetupError) {
@@ -406,6 +366,8 @@ function convertPxToChem(canvas, xCoordinate) {
 
     let plotMinDataX = Math.min(spectrumData[0].x, spectrumData[dataLength - 1].x);
     let plotMaxDataX = Math.max(spectrumData[0].x, spectrumData[dataLength - 1].x);
+    // console.log(spectrumData[0].x)
+    // console.log(spectrumData[dataLength - 1].x)
 
     let dataRange = plotMaxDataX - plotMinDataX;
     // console.log("Data range:", dataRange);
@@ -417,10 +379,6 @@ function convertPxToChem(canvas, xCoordinate) {
 
     return calculatedDataX.toFixed(0);
 }
-/// Things need to be done:
-/// - Add function for text description for each viewing mode
-/// - Add ratio calculation for viewing mode other than MS 
-/// - Need to return the text to general description when hover out of the canvas
 
 async function displayTextWhenHovered(path, hoveredX, mode="", elSelector=".spec-desc") {
     let textBox = document.querySelector(elSelector); 
@@ -453,7 +411,11 @@ async function displayTextWhenHovered(path, hoveredX, mode="", elSelector=".spec
             textBox.innerText = modeObj.general_description;
 
             for(let i = 0; i < peaksArray.length; i += 1)  {
-                if (hoveredX == peaksArray[i].x) {
+                
+                if (hoveredX == Math.round(peaksArray[i].x)) { /// Should be a range arround this number, instead of only exactly this number
+                    console.log("hoveredX: " + hoveredX)
+                    console.log("peaksArray[i].x: " + Math.round(peaksArray[i].x))
+                    console.log(hoveredX == Math.round(peaksArray[i].x))
                     textBox.innerHTML = peaksArray[i].description;
                 }
             }
@@ -465,9 +427,16 @@ async function displayTextWhenHovered(path, hoveredX, mode="", elSelector=".spec
     }
 }
 
-setupSpectrumInteractivity(canvases)
+setupSpectrumInteractivity(canvases, "MS","Ethanol")
 
 function displayText() {
 
 }
 
+/// Things need to be done:
+/// - Redesign the system for adding text description (which function need to be written and what 
+// parameter need to go inside which function)
+/// - Add function for text description for each viewing mode
+/// - Add ratio calculation for viewing mode other than MS 
+/// - Need to return the text to general description when hover out of the canvas
+/// - 3.5 is rounded up
