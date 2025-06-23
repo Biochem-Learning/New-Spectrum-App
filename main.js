@@ -298,6 +298,7 @@ async function createCompoundSubmenu(menuFilePath) {
                 )
 
                 setupSpectrumInteractivity(canvases, "MS", displayingMol)
+                displayGeneralText(displayingMol)
             });
         }
     })
@@ -316,6 +317,7 @@ createCompoundSubmenu("data/Spectra/CompondMenu.txt")
 document.querySelectorAll(".nav-bar-section").forEach(button => {
     button.addEventListener("click", function() {
         if (this.id === "compounds") {
+            displayGeneralText(displayingMol)
             return;
         }
         canvases = setUpCanvas('data/Spectra/' + this.id + '/' + displayingMol + this.id + '.jdx',
@@ -324,6 +326,7 @@ document.querySelectorAll(".nav-bar-section").forEach(button => {
         ) 
 
         setupSpectrumInteractivity(canvases, this.id, displayingMol)
+        displayGeneralText(displayingMol, this.id)
     });
 })
 
@@ -339,6 +342,8 @@ async function setupSpectrumInteractivity(canvases, mode, molecule) {
     try {
         const canvasesArray = await canvases;
 
+        const specJSON = await getDataJSON("data/Spectra/SpecDescription/" + molecule +".json");
+
         let specCanvas = canvasesArray[1];
 
         let targetCanvasElement = document.querySelector("#sample_spectrum");
@@ -350,7 +355,7 @@ async function setupSpectrumInteractivity(canvases, mode, molecule) {
             // console.log("Real X Coordinate " + xCoordinate)
             console.log("Converted X Coordinate " + calculatedDataX)
 
-            displayTextWhenHovered("data/Spectra/SpecDescription/" + molecule +".json", calculatedDataX, mode)
+            displayTextWhenHovered(specJSON, calculatedDataX, mode)
         });
 
     } catch (mainSetupError) {
@@ -380,29 +385,28 @@ function convertPxToChem(canvas, xCoordinate) {
     return calculatedDataX.toFixed(0);
 }
 
-async function displayTextWhenHovered(path, hoveredX, mode="", elSelector=".spec-desc") {
+async function displayTextWhenHovered(dataJSON, hoveredX, mode="", elSelector=".spec-desc") {
     let textBox = document.querySelector(elSelector); 
     
     try {
-        const specJSON = await getDataJSON(path);
         if (mode === "") {
-            textBox.innerText = specJSON.description;
-            console.log(specJSON.general_description);
+            textBox.innerText = dataJSON.description;
+            console.log(dataJSON.general_description);
         }
         else {
             let modeObj;
             switch (mode) {
                 case "MS":
-                    modeObj = specJSON.spectra_info.MS;
+                    modeObj = dataJSON.spectra_info.MS;
                     break
                 case "IR":
-                    modeObj = specJSON.spectra_info.IR;
+                    modeObj = dataJSON.spectra_info.IR;
                     break
                 case "HNMR":
-                    modeObj = specJSON.spectra_info.HNMR;
+                    modeObj = dataJSON.spectra_info.HNMR;
                     break
                 case "CNMR":
-                    modeObj = specJSON.spectra_info.CNMR;
+                    modeObj = dataJSON.spectra_info.CNMR;
                     break
             }
 
@@ -416,7 +420,7 @@ async function displayTextWhenHovered(path, hoveredX, mode="", elSelector=".spec
                     console.log("hoveredX: " + hoveredX)
                     console.log("peaksArray[i].x: " + Math.round(peaksArray[i].x))
                     console.log(hoveredX == Math.round(peaksArray[i].x))
-                    textBox.innerHTML = peaksArray[i].description;
+                    textBox.innerText = peaksArray[i].description;
                 }
             }
         }
@@ -428,9 +432,30 @@ async function displayTextWhenHovered(path, hoveredX, mode="", elSelector=".spec
 }
 
 setupSpectrumInteractivity(canvases, "MS","Ethanol")
+displayGeneralText("Ethanol")
 
-function displayText() {
 
+///Not good, need rewrite
+async function displayGeneralText(molecule,mode="") {
+    const dataJSON = await getDataJSON("data/Spectra/SpecDescription/" + molecule +".json");
+    let textBox = document.querySelector(".spec-desc"); 
+    switch (mode) {
+        case "":
+            textBox.innerText = dataJSON.description;
+            break
+        case "MS":
+            textBox.innerText = dataJSON.spectra_info.MS.general_description;
+            break
+        case "IR":
+            textBox.innerText = dataJSON.spectra_info.IR.general_description;
+            break
+        case "HNMR":
+            textBox.innerText = dataJSON.spectra_info.HNMR.general_description;
+            break
+        case "CNMR":
+            textBox.innerText = dataJSON.spectra_info.CNMR.general_description;
+            break
+    }
 }
 
 /// Things need to be done:
