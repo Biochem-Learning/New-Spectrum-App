@@ -363,7 +363,7 @@ async function displayGeneralText(molecule,mode="") {
 }
 
 
-async function displayTextWhenHovered(hovered) {
+async function displayTextWhenHovered(hoveredEl) {
     const dataJSON = await getDataJSON("data/Spectra/SpecDescription/" + displayingMol + ".json");
     let textBox = document.querySelector(".spec-desc"); 
 
@@ -372,19 +372,16 @@ async function displayTextWhenHovered(hovered) {
         return; 
     }
 
-    if (hovered && typeof hovered.x === 'number' && hovered.x !== null && !isNaN(hovered.x)) {
+    if (hoveredEl && typeof hoveredEl.x === 'number' && hoveredEl.x !== null && !isNaN(hoveredEl.x)) {
 
-        const peaksFromJSON = dataJSON?.spectra_info?.MS?.peaks;
+        const peaksFromJSON = dataJSON?.spectra_info?.HNMR?.peaks;
 
         if (Array.isArray(peaksFromJSON)) {
-            const matchedPeakInJSON = peaksFromJSON.find(p =>
-                p && typeof p.x === 'number' && p.x !== null && !isNaN(p.x) &&
-                p.x === hovered.x
-            );
-
-            if (matchedPeakInJSON) {
-                descriptionToShow = matchedPeakInJSON.description || "No description in JSON for this peak.";
-                textBox.innerText = descriptionToShow;
+            for(let i = 0; i < peaksFromJSON.length; i += 1)  {
+                
+                if (hoveredEl.x == peaksFromJSON[i].x) { 
+                    textBox.innerText = peaksFromJSON[i].description;
+                }
             }
         } else {
             console.warn("JSON does not contain a valid 'spectra_info.MS.peaks' array.");
@@ -392,13 +389,8 @@ async function displayTextWhenHovered(hovered) {
 
     } else {
         descriptionToShow = "Invalid hovered peak data provided.";
-        console.warn("Invalid 'hovered' object or 'hovered.x' value:", hovered);
+        console.warn("Invalid 'hovered' object or 'hovered.x' value:", hoveredEl);
     }
-
-    if (dataJSON.spectra_info.MS.peaksx == hovered.x) {
-        textBox.innerHTML = [];
-    }
-	
 }
 
 function removeTextWhenMoveout() {
