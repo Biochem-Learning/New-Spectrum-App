@@ -3,6 +3,9 @@ const MOL_CANVAS_HEIGHT = 90;
 const SPEC_CANVAS_WIDTH = 95;
 const SPEC_CANVAS_HEIGHT = 95;
 
+const MOL_CANVAS_ID = "sample_molecule";
+const SPEC_CANVAS_ID = "sample_spectrum";
+
 const SPEC_DESCRIPTION_TEXTBOX =  document.querySelector(".spec-desc"); 
 
 let displayingMol = "Ethanol"
@@ -50,8 +53,7 @@ async function setUpCanvas(path='', molCanvasId, specCanvasId) {
     return canvas;
 }
 
-const MOL_CANVAS_ID = "sample_molecule";
-const SPEC_CANVAS_ID = "sample_spectrum";
+
 let canvases = setUpCanvas(
     'data/Spectra/' + viewingMode + '/' + displayingMol + viewingMode + '.jdx',
     MOL_CANVAS_ID,
@@ -59,13 +61,13 @@ let canvases = setUpCanvas(
 );
 
 
-if (SPEC_DESCRIPTION_TEXTBOX.innerText === "") {
-    alert("Go fuck yourself")
-}
-
-async function initializeCanvas(canvas, url="") {
-    
-}
+window.addEventListener('resize', function() {
+    canvases = setUpCanvas(
+        'data/Spectra/' + viewingMode + '/' + displayingMol + viewingMode + '.jdx',
+        MOL_CANVAS_ID,
+        SPEC_CANVAS_ID
+    )
+});
 
 function removeCanvas(canvasId) {
 	let canvasAndParent = getDivAndParentEl("#" + canvasId);
