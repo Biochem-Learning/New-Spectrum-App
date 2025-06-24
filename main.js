@@ -4,6 +4,7 @@ const SPEC_CANVAS_WIDTH = 95;
 const SPEC_CANVAS_HEIGHT = 95;
 
 let displayingMol = "Ethanol"
+let viewingMode = "MS"
 
 function displayOrHideElement(elementName) {
     const element = document.querySelector(elementName);
@@ -324,7 +325,7 @@ document.querySelectorAll(".nav-bar-section").forEach(button => {
             MOL_CANVAS_ID,
             SPEC_CANVAS_ID
         ) 
-
+        viewingMode = this.id;
         // setupSpectrumInteractivity(canvases, this.id, displayingMol)
         displayGeneralText(displayingMol, this.id)
     });
@@ -363,7 +364,7 @@ async function displayGeneralText(molecule,mode="") {
 }
 
 
-async function displayTextWhenHovered(hoveredEl) {
+async function displayTextWhenHovered(hoveredEl, mode="MS", mol="Ethanol") {
     const dataJSON = await getDataJSON("data/Spectra/SpecDescription/" + displayingMol + ".json");
     let textBox = document.querySelector(".spec-desc"); 
 
@@ -374,7 +375,21 @@ async function displayTextWhenHovered(hoveredEl) {
 
     if (hoveredEl && typeof hoveredEl.x === 'number' && hoveredEl.x !== null && !isNaN(hoveredEl.x)) {
 
-        const peaksFromJSON = dataJSON?.spectra_info?.HNMR?.peaks;
+        let peaksFromJSON;
+        switch (mode) {
+            case "MS":
+                peaksFromJSON = dataJSON?.spectra_info?.MS?.peaks;
+                break
+            case "IR":
+                peaksFromJSON = dataJSON?.spectra_info?.IR?.peaks;
+                break
+            case "HNMR":
+                peaksFromJSON = dataJSON?.spectra_info?.HNMR?.peaks;
+                break
+            case "CNMR":
+                peaksFromJSON = dataJSON?.spectra_info?.CNMR?.peaks;
+                break
+        }
 
         if (Array.isArray(peaksFromJSON)) {
             for(let i = 0; i < peaksFromJSON.length; i += 1)  {
@@ -409,6 +424,9 @@ function removeTextWhenMoveout() {
 ///////////////////////
 /// UNUSED FUNCTION ///
 ///////////////////////
+
+
+/// Update these function if need to be used
 
 // async function setupSpectrumInteractivity(canvases, mode, molecule) {
 //     try {
