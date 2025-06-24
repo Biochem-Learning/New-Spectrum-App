@@ -297,7 +297,7 @@ async function createCompoundSubmenu(menuFilePath) {
                     SPEC_CANVAS_ID
                 )
 
-                setupSpectrumInteractivity(canvases, "MS", displayingMol)
+                // setupSpectrumInteractivity(canvases, "MS", displayingMol)
                 displayGeneralText(displayingMol)
             });
         }
@@ -325,7 +325,7 @@ document.querySelectorAll(".nav-bar-section").forEach(button => {
             SPEC_CANVAS_ID
         ) 
 
-        setupSpectrumInteractivity(canvases, this.id, displayingMol)
+        // setupSpectrumInteractivity(canvases, this.id, displayingMol)
         displayGeneralText(displayingMol, this.id)
     });
 })
@@ -337,103 +337,7 @@ async function getDataJSON(jsonPath) {
     return dataObject;
 }
 
-
-async function setupSpectrumInteractivity(canvases, mode, molecule) {
-    try {
-        const canvasesArray = await canvases;
-
-        const specJSON = await getDataJSON("data/Spectra/SpecDescription/" + molecule +".json");
-
-        let specCanvas = canvasesArray[1];
-
-        let targetCanvasElement = document.querySelector("#sample_spectrum");
-
-        targetCanvasElement.addEventListener("mousemove", async function(event) {
-            const xCoordinate = event.offsetX; 
-
-            let calculatedDataX = convertPxToChem(specCanvas, xCoordinate);
-            // console.log("Real X Coordinate " + xCoordinate)
-            console.log("Converted X Coordinate " + calculatedDataX)
-
-            displayTextWhenHovered(specJSON, calculatedDataX, mode)
-        });
-
-    } catch (mainSetupError) {
-        console.error("An error occurred during initial spectrum setup:", mainSetupError);
-    }
-}
-
-
-function convertPxToChem(canvas, xCoordinate) {
-    let spectrumData = canvas.spectrum.data;
-    let dataLength = spectrumData.length;
-    // console.log("Total data points:", dataLength);
-
-    let plotMinDataX = Math.min(spectrumData[0].x, spectrumData[dataLength - 1].x);
-    let plotMaxDataX = Math.max(spectrumData[0].x, spectrumData[dataLength - 1].x);
-    // console.log(spectrumData[0].x)
-    // console.log(spectrumData[dataLength - 1].x)
-
-    let dataRange = plotMaxDataX - plotMinDataX;
-    // console.log("Data range:", dataRange);
-
-    let canvasWidth = canvas.width;
-    // console.log("Canvas total pixel width:", canvasWidth);
-
-    let calculatedDataX = plotMaxDataX - (xCoordinate / canvasWidth) * dataRange;
-
-    return calculatedDataX.toFixed(0);
-}
-
-async function displayTextWhenHovered(dataJSON, hoveredX, mode="", elSelector=".spec-desc") {
-    let textBox = document.querySelector(elSelector); 
-    
-    try {
-        if (mode === "") {
-            textBox.innerText = dataJSON.description;
-            console.log(dataJSON.general_description);
-        }
-        else {
-            let modeObj;
-            switch (mode) {
-                case "MS":
-                    modeObj = dataJSON.spectra_info.MS;
-                    break
-                case "IR":
-                    modeObj = dataJSON.spectra_info.IR;
-                    break
-                case "HNMR":
-                    modeObj = dataJSON.spectra_info.HNMR;
-                    break
-                case "CNMR":
-                    modeObj = dataJSON.spectra_info.CNMR;
-                    break
-            }
-
-            let peaksArray = modeObj.peaks
-
-            textBox.innerText = modeObj.general_description;
-
-            for(let i = 0; i < peaksArray.length; i += 1)  {
-                
-                if (hoveredX == Math.round(peaksArray[i].x)) { /// Should be a range arround this number, instead of only exactly this number
-                    console.log("hoveredX: " + hoveredX)
-                    console.log("peaksArray[i].x: " + Math.round(peaksArray[i].x))
-                    console.log(hoveredX == Math.round(peaksArray[i].x))
-                    textBox.innerText = peaksArray[i].description;
-                }
-            }
-        }
-        
-    } catch (jsonError) {
-        console.error("Error fetching or parsing JSON in mousemove:", jsonError);
-        textBox.innerHTML = "Error loading description."; // Inform user of error
-    }
-}
-
-setupSpectrumInteractivity(canvases, "MS","Ethanol")
 displayGeneralText("Ethanol")
-
 
 ///Not good, need rewrite
 async function displayGeneralText(molecule,mode="") {
@@ -458,6 +362,50 @@ async function displayGeneralText(molecule,mode="") {
     }
 }
 
+
+async function displayTextWhenHovered(hovered) {
+    const dataJSON = await getDataJSON("data/Spectra/SpecDescription/" + displayingMol + ".json");
+    let textBox = document.querySelector(".spec-desc"); 
+
+    if (!textBox) {
+        console.error("Error: Element with class '.spec-desc' not found.");
+        return; 
+    }
+
+    if (hovered && typeof hovered.x === 'number' && hovered.x !== null && !isNaN(hovered.x)) {
+
+        const peaksFromJSON = dataJSON?.spectra_info?.MS?.peaks;
+
+        if (Array.isArray(peaksFromJSON)) {
+            const matchedPeakInJSON = peaksFromJSON.find(p =>
+                p && typeof p.x === 'number' && p.x !== null && !isNaN(p.x) &&
+                p.x === hovered.x
+            );
+
+            if (matchedPeakInJSON) {
+                descriptionToShow = matchedPeakInJSON.description || "No description in JSON for this peak.";
+                textBox.innerText = descriptionToShow;
+            }
+        } else {
+            console.warn("JSON does not contain a valid 'spectra_info.MS.peaks' array.");
+        }
+
+    } else {
+        descriptionToShow = "Invalid hovered peak data provided.";
+        console.warn("Invalid 'hovered' object or 'hovered.x' value:", hovered);
+    }
+
+    if (dataJSON.spectra_info.MS.peaksx == hovered.x) {
+        textBox.innerHTML = [];
+    }
+	
+}
+
+function removeTextWhenMoveout() {
+    let textBox = document.querySelector(".spec-desc")
+    textBox.innerText = "";
+}
+
 /// Things need to be done:
 /// - Redesign the system for adding text description (which function need to be written and what 
 // parameter need to go inside which function)
@@ -465,3 +413,102 @@ async function displayGeneralText(molecule,mode="") {
 /// - Add ratio calculation for viewing mode other than MS 
 /// - Need to return the text to general description when hover out of the canvas
 /// - 3.5 is rounded up
+
+///////////////////////
+/// UNUSED FUNCTION ///
+///////////////////////
+
+// async function setupSpectrumInteractivity(canvases, mode, molecule) {
+//     try {
+//         const canvasesArray = await canvases;
+
+//         const specJSON = await getDataJSON("data/Spectra/SpecDescription/" + molecule +".json");
+
+//         let specCanvas = canvasesArray[1];
+
+//         let targetCanvasElement = document.querySelector("#sample_spectrum");
+
+//         targetCanvasElement.addEventListener("mousemove", async function(event) {
+//             const xCoordinate = event.offsetX; 
+
+//             let calculatedDataX = convertPxToChem(specCanvas, xCoordinate);
+//             // console.log("Real X Coordinate " + xCoordinate)
+//             console.log("Converted X Coordinate " + calculatedDataX)
+
+//             displayTextWhenHovered(specJSON, calculatedDataX, mode)
+//         });
+
+//     } catch (mainSetupError) {
+//         console.error("An error occurred during initial spectrum setup:", mainSetupError);
+//     }
+// }
+
+
+// function convertPxToChem(canvas, xCoordinate) {
+//     let spectrumData = canvas.spectrum.data;
+//     let dataLength = spectrumData.length;
+//     // console.log("Total data points:", dataLength);
+
+//     let plotMinDataX = Math.min(spectrumData[0].x, spectrumData[dataLength - 1].x);
+//     let plotMaxDataX = Math.max(spectrumData[0].x, spectrumData[dataLength - 1].x);
+//     // console.log(spectrumData[0].x)
+//     // console.log(spectrumData[dataLength - 1].x)
+
+//     let dataRange = plotMaxDataX - plotMinDataX;
+//     // console.log("Data range:", dataRange);
+
+//     let canvasWidth = canvas.width;
+//     // console.log("Canvas total pixel width:", canvasWidth);
+
+//     let calculatedDataX = plotMaxDataX - (xCoordinate / canvasWidth) * dataRange;
+
+//     return calculatedDataX.toFixed(0);
+// }
+
+// async function displayTextWhenHovered(dataJSON, hoveredX, mode="", elSelector=".spec-desc") {
+//     let textBox = document.querySelector(elSelector); 
+    
+//     try {
+//         if (mode === "") {
+//             textBox.innerText = dataJSON.description;
+//             console.log(dataJSON.general_description);
+//         }
+//         else {
+//             let modeObj;
+//             switch (mode) {
+//                 case "MS":
+//                     modeObj = dataJSON.spectra_info.MS;
+//                     break
+//                 case "IR":
+//                     modeObj = dataJSON.spectra_info.IR;
+//                     break
+//                 case "HNMR":
+//                     modeObj = dataJSON.spectra_info.HNMR;
+//                     break
+//                 case "CNMR":
+//                     modeObj = dataJSON.spectra_info.CNMR;
+//                     break
+//             }
+
+//             let peaksArray = modeObj.peaks
+
+//             textBox.innerText = modeObj.general_description;
+
+//             for(let i = 0; i < peaksArray.length; i += 1)  {
+                
+//                 if (hoveredX == Math.round(peaksArray[i].x)) { /// Should be a range arround this number, instead of only exactly this number
+//                     console.log("hoveredX: " + hoveredX)
+//                     console.log("peaksArray[i].x: " + Math.round(peaksArray[i].x))
+//                     console.log(hoveredX == Math.round(peaksArray[i].x))
+//                     textBox.innerText = peaksArray[i].description;
+//                 }
+//             }
+//         }
+        
+//     } catch (jsonError) {
+//         console.error("Error fetching or parsing JSON in mousemove:", jsonError);
+//         textBox.innerHTML = "Error loading description."; // Inform user of error
+//     }
+// }
+
+// setupSpectrumInteractivity(canvases, "MS","Ethanol")
