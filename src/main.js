@@ -11,6 +11,22 @@ const SPEC_DESCRIPTION_TEXTBOX =  document.querySelector(".spec-desc");
 let displayingMol = "Ethanol"
 let viewingMode = "MS"
 
+let canvases = setUpCanvas(
+    'data/Spectra/' + viewingMode + '/' + displayingMol + viewingMode + '.jdx',
+    MOL_CANVAS_ID,
+    SPEC_CANVAS_ID
+);
+
+createCompoundSubmenu("data/Spectra/CompondMenu.txt")
+
+dragElement(".frag-table", ".f-t-general-instr");
+
+displayGeneralText(displayingMol)
+
+///////////////////////
+/// WINDOW BEHAVIORS///
+///////////////////////
+
 document.querySelector(".frag-table-button").addEventListener("click", function() {
     event.stopPropagation()
     displayOrHideElement(".frag-table");
@@ -24,15 +40,24 @@ document.addEventListener("click", function() {
     }
 });
 
-///drag
-dragElement(".frag-table", ".f-t-general-instr");
+document.querySelectorAll(".nav-bar-section").forEach(button => {
+    button.addEventListener("click", function() {
+        if (this.id === "compounds") {
+            displayGeneralText(displayingMol)
+            return;
+        }
+        canvases = setUpCanvas('data/Spectra/' + this.id + '/' + displayingMol + this.id + '.jdx',
+            MOL_CANVAS_ID,
+            SPEC_CANVAS_ID
+        ) 
+        viewingMode = this.id;
+        displayGeneralText(displayingMol, this.id)
+    });
+})
 
-/// Change alert
 window.onbeforeunload = function() {
   return "Data will be lost if you leave the page, are you sure?";
 };
-
-/// !!!NOTICE: For anyone who try to work on this part, the original ChemDoodle lib only support 
 
 async function setUpCanvas(path='', molCanvasId, specCanvasId) {
     removeCanvas(molCanvasId)
@@ -52,14 +77,6 @@ async function setUpCanvas(path='', molCanvasId, specCanvasId) {
     console.log(canvas);
     return canvas;
 }
-
-
-let canvases = setUpCanvas(
-    'data/Spectra/' + viewingMode + '/' + displayingMol + viewingMode + '.jdx',
-    MOL_CANVAS_ID,
-    SPEC_CANVAS_ID
-);
-
 
 window.addEventListener('resize', function() {
     canvases = setUpCanvas(
@@ -110,7 +127,7 @@ async function createCompoundSubmenu(menuFilePath) {
                 event.preventDefault(); 
                 displayingMol = itemArray[i];
 
-                canvases = setUpCanvas('data/Spectra/MS/' + displayingMol + 'MS.jdx',/// Might change to return instead
+                canvases = setUpCanvas('data/Spectra/MS/' + displayingMol + 'MS.jdx',
                     MOL_CANVAS_ID,
                     SPEC_CANVAS_ID
                 )
@@ -123,36 +140,12 @@ async function createCompoundSubmenu(menuFilePath) {
 
 }
 
-
-function refreshCanvas() {
-
-}
-
-createCompoundSubmenu("data/Spectra/CompondMenu.txt")
-
-document.querySelectorAll(".nav-bar-section").forEach(button => {
-    button.addEventListener("click", function() {
-        if (this.id === "compounds") {
-            displayGeneralText(displayingMol)
-            return;
-        }
-        canvases = setUpCanvas('data/Spectra/' + this.id + '/' + displayingMol + this.id + '.jdx',
-            MOL_CANVAS_ID,
-            SPEC_CANVAS_ID
-        ) 
-        viewingMode = this.id;
-        displayGeneralText(displayingMol, this.id)
-    });
-})
-
 async function getDataJSON(jsonPath) {
     const response = await getData(jsonPath);
     const dataObject = JSON.parse(response);
 
     return dataObject;
 }
-
-displayGeneralText(displayingMol)
 
 ///Not good, need rewrite
 async function displayGeneralText(molecule,mode="",textBoxEl=SPEC_DESCRIPTION_TEXTBOX) {
@@ -175,7 +168,6 @@ async function displayGeneralText(molecule,mode="",textBoxEl=SPEC_DESCRIPTION_TE
             break
     }
 }
-
 
 async function displayTextWhenHovered(hoveredEl, mode, mol, textBoxEl) {
     const dataJSON = await getDataJSON("data/Spectra/SpecDescription/" + mol + ".json");
@@ -224,13 +216,7 @@ function removeTextWhenMoveout(textBoxEl) {
     textBoxEl.innerText = "";
 }
 
-/// Things need to be done:
-/// - Redesign the system for adding text description (which function need to be written and what 
-// parameter need to go inside which function)
-/// - Add function for text description for each viewing mode
-/// - Add ratio calculation for viewing mode other than MS 
-/// - Need to return the text to general description when hover out of the canvas
-/// - 3.5 is rounded up
+/// Problem: Extreme Inefficient (The App fetch JSON every mousemove)
 
 ///////////////////////
 /// UNUSED FUNCTION ///
