@@ -188,3 +188,10 @@ function percentage(divSelector, percentage, dimension) {
     return caculatedDimension
 }
 
+async function getDataJSON(jsonPath) {
+    const response = await getData(jsonPath);
+    const dataObject = JSON.parse(response);
+
+    return dataObject;
+}
+

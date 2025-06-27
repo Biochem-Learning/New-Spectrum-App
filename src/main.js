@@ -1,7 +1,9 @@
-const MOL_CANVAS_WIDTH = 90;
-const MOL_CANVAS_HEIGHT = 90;
-const SPEC_CANVAS_WIDTH = 95;
-const SPEC_CANVAS_HEIGHT = 95;
+const MOL_CANVAS_WIDTH = 90; ///Change this to percentage(100) for cleaner code
+const MOL_CANVAS_HEIGHT = 90; ///Change this to percentage(100) for cleaner code
+const SPEC_CANVAS_WIDTH = 95; ///Change this to percentage(100) for cleaner code
+const SPEC_CANVAS_HEIGHT = 95; ///Change this to percentage(100) for cleaner code
+const USER_CANVAS_WIDTH = 100; ///Change this to percentage(100) for cleaner code
+const USER_CANVAS_HEIGHT = 100; ///Change this to percentage(100) for cleaner code
 
 const MOL_CANVAS_ID = "sample_molecule";
 const SPEC_CANVAS_ID = "sample_spectrum";
@@ -11,11 +13,61 @@ const SPEC_DESCRIPTION_TEXTBOX =  document.querySelector(".spec-desc");
 let displayingMol = "Ethanol"
 let viewingMode = "MS"
 
+let dataJSON;
+
+// Usage
+// (async function () {
+//     const jsonFilePath = "data/Spectra/SpecDescription/Ethanol.json";
+//     try {
+//         dataJSON = await loadJSONData(jsonFilePath);
+//         console.log(dataJSON); // Work with your JSON data here
+//     } catch (error) {
+//         console.error("Error during data loading:", error);
+//     }
+// })();
+
+/// Problem: Extreme Inefficient (The App fetch JSON every mousemove)
+
 let canvases = setUpCanvas(
     'data/Spectra/' + viewingMode + '/' + displayingMol + viewingMode + '.jdx',
     MOL_CANVAS_ID,
-    SPEC_CANVAS_ID
+    SPEC_CANVAS_ID,
+    MOL_CANVAS_WIDTH,
+    MOL_CANVAS_HEIGHT,
+    SPEC_CANVAS_WIDTH,
+    SPEC_CANVAS_HEIGHT,
 );
+
+// let userCanvas = setUpSketcherCanvas(
+//     "frag-canvas", 
+//     USER_CANVAS_WIDTH, 
+//     USER_CANVAS_HEIGHT
+// );
+
+// function setUpSketcherCanvas(canvasId, width, height) {
+// 	// Initiate the canvas
+// 	const options = {
+// 		useService: true,
+// 		oneMolecule: false,
+// 		// isMobile: true,
+// 	};
+
+// 	// Set up the ChemDoodle SketcherCanvas component
+// 	ChemDoodle.ELEMENT["H"].jmolColor = "black";
+// 	ChemDoodle.ELEMENT["S"].jmolColor = "#B9A130";
+// 	const sketcher = new ChemDoodle.SketcherCanvas(
+//         canvasId, 
+//         percentage("#" + canvasId, width, "width"), 
+//         percentage("#" + canvasId, height, "height"), 
+//         options);
+
+// 	sketcher.styles.atoms_displayTerminalCarbonLabels_2D = true;
+// 	sketcher.styles.atoms_useJMOLColors = true;
+// 	sketcher.styles.bonds_clearOverlaps_2D = true;
+// 	sketcher.styles.shapes_color = "c10000";
+
+// 	return sketcher;
+// }
 
 createCompoundSubmenu("data/Spectra/CompondMenu.txt")
 
@@ -35,7 +87,9 @@ document.querySelector(".frag-table-button").addEventListener("click", function(
 document.addEventListener("click", function() {
     const clickedElement = event.target
 
-    if (clickedElement.className !== "frag-table" && clickedElement.className !== "f-t-general-instr") {
+    if (clickedElement.className !== "frag-table" && 
+        clickedElement.className !== "f-t-general-instr" &&
+        clickedElement.className !== "frag-table-items") {
         clickout(".frag-table");
     }
 });
@@ -48,18 +102,103 @@ document.querySelectorAll(".nav-bar-section").forEach(button => {
         }
         canvases = setUpCanvas('data/Spectra/' + this.id + '/' + displayingMol + this.id + '.jdx',
             MOL_CANVAS_ID,
-            SPEC_CANVAS_ID
+            SPEC_CANVAS_ID,
+            MOL_CANVAS_WIDTH,
+            MOL_CANVAS_HEIGHT,
+            SPEC_CANVAS_WIDTH,
+            SPEC_CANVAS_HEIGHT,
         ) 
         viewingMode = this.id;
         displayGeneralText(displayingMol, this.id)
     });
 })
 
+let deleteMode = false;
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll(".frag-table-items").forEach(item => {
+        item.addEventListener("click", function() {
+            if (item.id !== "del-frag-button") {
+                let fragCanvas = document.querySelector('#frag-canvas');
+                let frag = document.createElement("img");
+                frag.src = item.src;
+                frag.classList.add("frag-canvas-items")
+
+                makeDeletable(frag)
+
+                fragCanvas.appendChild(frag);
+            }
+            else {
+
+            }
+        });
+    })
+})
+
+function toggleMode(currentMode) {
+    return !currentMode;
+}
+
+document.querySelector("#del-frag-button").addEventListener("click", function() {
+    deleteMode = toggleMode(deleteMode);
+})
+
+function makeDeletable(element) {
+    element.addEventListener('click', function() {
+        if (deleteMode) {
+            this.remove(); 
+            console.log('Element removed:', this);
+        }
+    });
+}
+    
+// document.addEventListener('DOMContentLoaded', () => {
+//     let currentX = 0; // Track the current x position on the canvas
+//     let currentY = 0; // Track the current y position on the canvas
+
+//     const imgWidth = 100; // Set the width of each image
+//     const imgHeight = 100; // Set the height of each image
+//     const spacing = 10; // Spacing between images
+
+//     document.querySelectorAll(".frag-table-items").forEach(item => {
+//         item.addEventListener("click", function () {
+//             let fragCanvas = document.querySelector('#frag-canvas');
+//             let ctx = fragCanvas.getContext('2d');
+
+//             let imgSource = item.src;
+
+//             if (imgSource) {
+//                 let img = new Image();
+//                 img.src = imgSource;
+
+//                 img.onload = () => {
+//                     // Check if there's enough space on the current row
+//                     if (currentX + imgWidth > fragCanvas.width) {
+//                         // Move to the next row
+//                         currentX = 0;
+//                         currentY += imgHeight + spacing;
+//                     }
+
+//                     // Check if there's enough space vertically
+
+//                     // Draw the image at the current position
+//                     ctx.drawImage(img, currentX, currentY, imgWidth, imgHeight);
+
+//                     // Update the x position for the next image
+//                     currentX += imgWidth + spacing;
+//                 };
+//             } else {
+//                 console.error("Invalid image source");
+//             }
+//         });
+//     });
+// });
+
 window.onbeforeunload = function() {
   return "Data will be lost if you leave the page, are you sure?";
 };
 
-async function setUpCanvas(path='', molCanvasId, specCanvasId) {
+async function setUpCanvas(path='', molCanvasId, specCanvasId, molWidth, molHeight, specWidth, specHeight) {
     removeCanvas(molCanvasId)
     removeCanvas(specCanvasId)
 
@@ -68,10 +207,10 @@ async function setUpCanvas(path='', molCanvasId, specCanvasId) {
     let canvas = new ChemDoodle.io.JCAMPInterpreter().makeStructureSpectrumSet(
         'sample', 
         data, 
-        percentage("#" + molCanvasId, MOL_CANVAS_WIDTH, "width"), 
-        percentage("#" + molCanvasId, MOL_CANVAS_HEIGHT, "height"), 
-        percentage("#" + specCanvasId, SPEC_CANVAS_WIDTH, "width"), 
-        percentage("#" + specCanvasId, SPEC_CANVAS_HEIGHT, "height"),
+        percentage("#" + molCanvasId, molWidth, "width"), 
+        percentage("#" + molCanvasId, molHeight, "height"), 
+        percentage("#" + specCanvasId, specWidth, "width"), 
+        percentage("#" + specCanvasId, specHeight, "height"),
     )
 
     console.log(canvas);
@@ -82,7 +221,11 @@ window.addEventListener('resize', function() {
     canvases = setUpCanvas(
         'data/Spectra/' + viewingMode + '/' + displayingMol + viewingMode + '.jdx',
         MOL_CANVAS_ID,
-        SPEC_CANVAS_ID
+        SPEC_CANVAS_ID,
+        MOL_CANVAS_WIDTH,
+        MOL_CANVAS_HEIGHT,
+        SPEC_CANVAS_WIDTH,
+        SPEC_CANVAS_HEIGHT
     )
 });
 
@@ -129,7 +272,11 @@ async function createCompoundSubmenu(menuFilePath) {
 
                 canvases = setUpCanvas('data/Spectra/MS/' + displayingMol + 'MS.jdx',
                     MOL_CANVAS_ID,
-                    SPEC_CANVAS_ID
+                    SPEC_CANVAS_ID,
+                    MOL_CANVAS_WIDTH,
+                    MOL_CANVAS_HEIGHT,
+                    SPEC_CANVAS_WIDTH,
+                    SPEC_CANVAS_HEIGHT
                 )
 
                 displayGeneralText(displayingMol)
@@ -140,11 +287,15 @@ async function createCompoundSubmenu(menuFilePath) {
 
 }
 
-async function getDataJSON(jsonPath) {
-    const response = await getData(jsonPath);
-    const dataObject = JSON.parse(response);
+async function loadAndStoreData() {
+    const jsonFilePath = "data/Spectra/SpecDescription/Ethanol.json"; // Your JSON file path
 
-    return dataObject;
+    try {
+        dataJSON = await getJsonData(jsonFilePath);
+
+    } catch (error) {
+        console.error("Failed to load and process data:", error);
+    }
 }
 
 ///Not good, need rewrite
@@ -216,8 +367,18 @@ function removeTextWhenMoveout(textBoxEl) {
     textBoxEl.innerText = "";
 }
 
-/// Problem: Extreme Inefficient (The App fetch JSON every mousemove)
+function loadFragmentTable() {
+    for(let i = 0; i < 33; i += 1) {
+        let fragTable = document.querySelector(".frag-table");
+        let fragIcon = document.createElement("img");
+        fragIcon.id = "frag-table-item-" + i;
+        fragIcon.classList.add('frag-table-items');
+        fragIcon.setAttribute('src',"data/FragLibrary/frag" + i + ".png");
+        fragTable.appendChild(fragIcon)
+    }
+}
 
+loadFragmentTable()
 ///////////////////////
 /// UNUSED FUNCTION ///
 ///////////////////////
