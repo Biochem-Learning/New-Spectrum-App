@@ -89,7 +89,11 @@ document.addEventListener("click", function() {
 
     if (clickedElement.className !== "frag-table" && 
         clickedElement.className !== "f-t-general-instr" &&
-        clickedElement.className !== "frag-table-items") {
+        clickedElement.className !== "frag-table-items" &&
+        clickedElement.className !== "frag-canvas" &&
+        clickedElement.className !== "frag-canvas-items" && 
+        clickedElement.className !== "user-section" &&
+        clickedElement.className !== "overlay") {
         clickout(".frag-table");
     }
 });
@@ -129,19 +133,40 @@ document.addEventListener('DOMContentLoaded', () => {
                 fragCanvas.appendChild(frag);
             }
             else {
-
+                deleteMode = toggleMode(deleteMode);
+                displayOrHideElement2("jfdas")
+                if (deleteMode) {
+                    changeCursor('wait');
+                }
+                else {
+                    changeCursor('default');
+                }
             }
         });
     })
 })
 
+function displayOrHideElement2(elementSelector) {
+    let element = document.querySelector(".overlay")
+    let element2 = document.querySelector("#del-frag-button")
+    if (window.getComputedStyle(element).display === "none") {
+        element.style.display = "block";
+        element2.innerText = "Close Frag Edit Mode";
+    }
+    else {
+        element.style.display = "none";
+        element2.innerText = "Open Frag Edit Mode";
+    }
+}
+
+function changeCursor(cursorType) {
+    document.body.style.cursor = cursorType;
+}
+
+
 function toggleMode(currentMode) {
     return !currentMode;
 }
-
-document.querySelector("#del-frag-button").addEventListener("click", function() {
-    deleteMode = toggleMode(deleteMode);
-})
 
 function makeDeletable(element) {
     element.addEventListener('click', function() {

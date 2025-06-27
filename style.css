@@ -9,11 +9,14 @@
     --border-radius: 10px;
 }
 
+html, body, button {
+    font-family: var(--font);
+}
+
 html, body {
     margin: 0;
     padding: 0;
     color: aliceblue;
-    font-family: var(--font);
 }
 
 /**Add media query so that the size of the body be fixed after the height is scaled down enough**/
@@ -161,6 +164,7 @@ body::-webkit-scrollbar, .spec-desc::-webkit-scrollbar {
     border-radius: var(--border-radius);
     background-color: aliceblue;
     overflow: scroll;
+    z-index: 9;
 }
 
 .u-s-header {
@@ -202,6 +206,20 @@ body::-webkit-scrollbar, .spec-desc::-webkit-scrollbar {
     overflow-y: scroll;
     justify-items: center;
     align-items: center;
+    z-index: 9;
+}
+
+.overlay {
+    position: absolute; 
+    display: none;
+    background-color: rgba(128,128,128,0.7); 
+    height: 100%; 
+    width: 100%;
+    z-index: 8;
+}
+
+#del-frag-button {
+    width: 20%;
 }
 
 .frag-canvas {
