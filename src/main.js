@@ -117,34 +117,81 @@ document.querySelectorAll(".nav-bar-section").forEach(button => {
     });
 })
 
-let deleteMode = false;
+let editMode = false;
 
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll(".frag-table-items").forEach(item => {
-        item.addEventListener("click", function() {
-            if (item.id !== "del-frag-button") {
-                let fragCanvas = document.querySelector('#frag-canvas');
-                let frag = document.createElement("img");
-                frag.src = item.src;
-                frag.classList.add("frag-canvas-items")
-
-                makeDeletable(frag)
-
-                fragCanvas.appendChild(frag);
+function loadFragmentTable() {
+    let fragTable = document.querySelector(".frag-table")
+    for (let i = 0; i < 8; i++) {
+        fetch("data/FragLibrary/frag" + i + ".svg")
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Failed to load: " + response.status);
             }
-            else {
-                deleteMode = toggleMode(deleteMode);
-                displayOrHideElement2("jfdas")
-                if (deleteMode) {
-                    changeCursor('wait');
-                }
-                else {
-                    changeCursor('default');
-                }
-            }
+            return response.text(); 
+        })
+        .then(svgText => {
+            const parser = new DOMParser();
+            const svgDoc = parser.parseFromString(svgText, "image/svg+xml").documentElement;
+            
+            svgDoc.addEventListener('mouseover', function() {
+                this.style.cursor = 'pointer';
+            })
+
+            displayFragIntoCanvas(svgDoc)
+
+            fragTable.appendChild(svgDoc);
+        })
+        .catch(error => {
+            console.error("Error loading file: frag" + i + ".svg", error);
         });
-    })
+    }
+}
+
+loadFragmentTable()
+
+
+function displayFragIntoCanvas(frag) {
+    frag.addEventListener("click", function() {
+        let fragCanvas = document.querySelector('#frag-canvas');
+        let clone = this.cloneNode(true); 
+        fragCanvas.appendChild(clone);
+    });
+}
+
+document.querySelector("#del-frag-button").addEventListener("click", function() {
+    editMode = toggleMode(editMode);
+    displayOrHideElement2("jfdas")
 })
+
+
+// document.addEventListener('DOMContentLoaded', () => {
+//     document.querySelectorAll(".frag-table-items").forEach(item => {
+//         item.addEventListener("click", function() {
+//             if (item.id !== "del-frag-button") {
+//                 let fragCanvas = document.querySelector('#frag-canvas');
+//                 let frag = document.createElement("img");
+//                 frag.src = item.src;
+//                 frag.classList.add("frag-canvas-items")
+
+//                 makeDeletable(frag)
+
+//                 fragCanvas.appendChild(frag);
+                
+//                 frag.addEventListener('mouseover', function() {
+//                     if (editMode) {
+//                         this.style.cursor = 'pointer';
+//                     }
+//                 });
+//             }
+//             else {
+//                 editMode = toggleMode(editMode);
+//                 displayOrHideElement2("jfdas")
+//             }
+//         });
+//     })
+// })
+
+
 
 function displayOrHideElement2(elementSelector) {
     let element = document.querySelector(".overlay")
@@ -170,7 +217,7 @@ function toggleMode(currentMode) {
 
 function makeDeletable(element) {
     element.addEventListener('click', function() {
-        if (deleteMode) {
+        if (editMode) {
             this.remove(); 
             console.log('Element removed:', this);
         }
@@ -392,18 +439,7 @@ function removeTextWhenMoveout(textBoxEl) {
     textBoxEl.innerText = "";
 }
 
-function loadFragmentTable() {
-    for(let i = 0; i < 33; i += 1) {
-        let fragTable = document.querySelector(".frag-table");
-        let fragIcon = document.createElement("img");
-        fragIcon.id = "frag-table-item-" + i;
-        fragIcon.classList.add('frag-table-items');
-        fragIcon.setAttribute('src',"data/FragLibrary/frag" + i + ".png");
-        fragTable.appendChild(fragIcon)
-    }
-}
 
-loadFragmentTable()
 ///////////////////////
 /// UNUSED FUNCTION ///
 ///////////////////////
