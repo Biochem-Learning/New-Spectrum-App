@@ -182,6 +182,7 @@ body::-webkit-scrollbar, .spec-desc::-webkit-scrollbar {
 }
 
 .frag-table-button {
+    width: 70%;
     padding: 2%;
     border: var(--border-setting);
     border-radius: var(--border-radius);
@@ -259,7 +260,7 @@ body::-webkit-scrollbar, .spec-desc::-webkit-scrollbar {
 }
 
 .u-s-right-header {
-    width: 35%;
+    width: 40%;
     display: flex;
     flex-direction: row;
     justify-content: space-around;
@@ -398,3 +399,6 @@ body::-webkit-scrollbar, .spec-desc::-webkit-scrollbar {
 /* Change the background color of the dropdown button when the dropdown content is shown */
 .dropdown:hover .dropbtn {background-color: #3e8e41;}
 
+svg {
+    padding: 3%;
+}

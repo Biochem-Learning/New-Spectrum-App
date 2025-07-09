@@ -89,11 +89,11 @@ document.addEventListener("click", function() {
 
     if (clickedElement.className !== "frag-table" && 
         clickedElement.className !== "f-t-general-instr" &&
-        clickedElement.className !== "frag-table-items" &&
         clickedElement.className !== "frag-canvas" &&
-        clickedElement.className !== "frag-canvas-items" && 
         clickedElement.className !== "user-section" &&
-        clickedElement.className !== "overlay") {
+        clickedElement.className !== "overlay" && 
+        clickedElement.tagName !== "svg" &&
+        clickedElement.id != "del-frag-button") {
         clickout(".frag-table");
     }
 });
@@ -121,7 +121,7 @@ let editMode = false;
 
 function loadFragmentTable() {
     let fragTable = document.querySelector(".frag-table")
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 9; i++) {
         fetch("data/FragLibrary/frag" + i + ".svg")
         .then(response => {
             if (!response.ok) {
@@ -138,7 +138,7 @@ function loadFragmentTable() {
             })
 
             displayFragIntoCanvas(svgDoc)
-
+            
             fragTable.appendChild(svgDoc);
         })
         .catch(error => {
@@ -153,8 +153,10 @@ loadFragmentTable()
 function displayFragIntoCanvas(frag) {
     frag.addEventListener("click", function() {
         let fragCanvas = document.querySelector('#frag-canvas');
-        let clone = this.cloneNode(true); 
-        fragCanvas.appendChild(clone);
+        let clonedFrag = this.cloneNode(true); 
+        clonedFrag.classList.add('frag-canvas-items');
+        makeDeletable(clonedFrag)
+        fragCanvas.appendChild(clonedFrag);
     });
 }
 
@@ -162,36 +164,6 @@ document.querySelector("#del-frag-button").addEventListener("click", function() 
     editMode = toggleMode(editMode);
     displayOrHideElement2("jfdas")
 })
-
-
-// document.addEventListener('DOMContentLoaded', () => {
-//     document.querySelectorAll(".frag-table-items").forEach(item => {
-//         item.addEventListener("click", function() {
-//             if (item.id !== "del-frag-button") {
-//                 let fragCanvas = document.querySelector('#frag-canvas');
-//                 let frag = document.createElement("img");
-//                 frag.src = item.src;
-//                 frag.classList.add("frag-canvas-items")
-
-//                 makeDeletable(frag)
-
-//                 fragCanvas.appendChild(frag);
-                
-//                 frag.addEventListener('mouseover', function() {
-//                     if (editMode) {
-//                         this.style.cursor = 'pointer';
-//                     }
-//                 });
-//             }
-//             else {
-//                 editMode = toggleMode(editMode);
-//                 displayOrHideElement2("jfdas")
-//             }
-//         });
-//     })
-// })
-
-
 
 function displayOrHideElement2(elementSelector) {
     let element = document.querySelector(".overlay")
@@ -205,6 +177,248 @@ function displayOrHideElement2(elementSelector) {
         element2.innerText = "Open Frag Edit Mode";
     }
 }
+
+    // Wait for RDKit to finish loading
+let RDKitLoader = null;
+
+function loadRDKit() {
+  if (!RDKitLoader) {
+    RDKitLoader = window.initRDKitModule()
+      .then((RDKit) => {
+        console.log("RDKit version: " + RDKit.version());
+        return RDKit;
+      })
+      .catch((err) => {
+        console.error("Failed to load RDKit module.", err);
+        throw err;
+      });
+  }
+  return RDKitLoader;
+}
+
+async function useRDKit() {
+    let RDKit = await loadRDKit();
+    const mol = RDKit.get_mol("ClC");
+    console.log(mol.get_smiles());
+}
+
+useRDKit();
+
+      // Location of available bond: at the beginning, at the end, and before ")"
+                                       //    //    //   //
+
+function dragAndDrop() {
+
+    let selected1 = null;
+    let selected2 = null;
+    const canvas =  document.querySelector("#frag-canvas")
+    
+    canvas.addEventListener("mousedown", function (event) {
+        const target = event.target.closest("svg");
+        if (target) {
+            selected1 = target;
+            console.log("Selected 1:", selected1);
+        }
+    });
+
+    canvas.addEventListener("mouseup", function (event) {
+        const target = event.target.closest("svg");
+        if (target) {
+            selected2 = target;
+            console.log("Selected 2:", selected2);
+
+            if (selected1 && selected2 && selected1 !== selected2) {
+                mergeImages(selected1, selected2);
+
+                selected1 = null;
+                selected2 = null;
+            }
+        }
+    });
+}
+
+dragAndDrop()
+
+async function mergeImages(selected1,selected2) {
+    let RDKit = await loadRDKit();
+    const svgString1 = decodeURIComponent(selected1.dataset.smiles);
+    const svgString2Unconverted = decodeURIComponent(selected2.dataset.smiles);
+    const svgString2 = removeOneBond(svgString2Unconverted);
+    const canvas =  document.querySelector("#frag-canvas")
+
+    const arr = svgString1.split("")
+    let spliceIndex = null;
+
+    if (arr[0] === "C" && arr[1] === "C") {
+        spliceIndex = 0;
+        console.log("Passed to first character");
+        console.log(arr[0])
+    } 
+    else if (arr[arr.length - 1] === "C") {
+        spliceIndex = arr.length - 1; // <-- fixed: insert at end
+        console.log("Passed to last character");
+    } 
+    else {
+        for (let i = 0; i < arr.length; i++) {
+                if (arr[i] === "C" && arr[i + 1] === ")") {
+                spliceIndex = i;
+                console.log("Passed to middle character");
+                break;
+            }
+        }
+    }
+
+    if (spliceIndex === null) {
+        alert("No valid splice point found!");
+        return;
+    }
+
+    arr.splice(spliceIndex, 1, svgString2);
+    const mergedString = arr.join("");
+
+    console.log("Merged SMILES:", mergedString);
+
+    selected1.remove();
+    selected2.remove();
+
+    const mergedMol = RDKit.get_mol(mergedString);
+    const mergedSvg = mergedMol.get_svg().replace(
+        "<svg",
+        `<svg data-smiles="${mergedString}"`
+    );
+
+    // dict.set(svg, smileStr);
+    canvas.innerHTML += mergedSvg;
+
+}
+
+function removeOneBond(SMILEStr, position) {
+    if (position == 0) {
+        if (SMILEStr[-1] !== "C") {
+            ///Communicate so that it can be mooved to onther position in the first bond
+            return
+        }
+
+    }
+
+    // for the second mol the connection point would ALWAYS be the first or last C bond depedning on situation, so if there is 
+    // anything that is not C in the first or last position of the secondMOL string, move it to anther bond location
+    // if molString2 is merged in the beginning of molString1: remove C at the end
+    // if molString2 is merged in the middle or end of molString1: remove C in the beginning
+    let newSmiles = SMILEStr.slice(0, -1);
+    return newSmiles
+}
+  
+// dragAndDrop()
+
+// function dragAndDrop() {
+//     let canvas = document.querySelector("#frag-canvas");
+
+//     let selected1 = null;
+//     let selected2 = null;
+    
+//     canvas.addEventListener("mousedown", function (event) {
+//         const target = event.target.closest("svg");
+//         if (target) {
+//             selected1 = target;
+//             console.log("Selected 1:", selected1);
+//         }
+//     });
+
+//     canvas.addEventListener("mouseup", function (event) {
+//         const target = event.target.closest("svg");
+//         if (target) {
+//             selected2 = target;
+//             console.log("Selected 2:", selected2);
+
+//             if (selected1 && selected2 && selected1 !== selected2) {
+//                 mergeImages(selected1, selected2);
+
+//                 // Clear selection after merging
+//                 selected1 = null;
+//                 selected2 = null;
+//             }
+//         }
+//     });
+// }
+
+// function createMergedSvgContainer() {
+//     const svgNS = "http://www.w3.org/2000/svg";
+//     const xlinkNS = "http://www.w3.org/1999/xlink";
+
+//     const svg = document.createElementNS(svgNS, "svg");
+
+//     // Set attributes
+//     svg.setAttribute("id", "mergedSvgContainer");
+//     svg.setAttribute("style", `
+//         cursor: pointer;
+//         fill-opacity: 1;
+//         text-rendering: auto;
+//         stroke: black;
+//         stroke-linecap: square;
+//         stroke-miterlimit: 10;
+//         shape-rendering: auto;
+//         stroke-opacity: 1;
+//         fill: black;
+//         stroke-dasharray: none;
+//         font-weight: normal;
+//         stroke-width: 1;
+//         font-family: 'Dialog';
+//         font-style: normal;
+//         stroke-linejoin: miter;
+//         font-size: 12px;
+//         stroke-dashoffset: 0;
+//         image-rendering: auto;
+//     `);
+//     svg.setAttribute("width", "86");
+//     svg.setAttribute("height", "16");
+//     svg.setAttribute("viewBox", "0 0 86.0 16.0");
+//     svg.setAttribute("xmlns", svgNS);
+//     svg.setAttribute("xmlns:xlink", xlinkNS);
+
+//     return svg; 
+// }
+
+// function mergeImages(svg1, svg2) {
+//     let mergedSvg = createMergedSvgContainer();
+//     let canvas = document.querySelector("#frag-canvas");
+
+//     console.log(svg1)
+//     console.log(svg2)
+
+//     let svg1Children = Array.from(svg1.children);
+//     let svg2Children = Array.from(svg2.children);
+
+//     svg1Children.forEach(child => {
+//         const clone = child.cloneNode(true);
+//         if (clone.tagName.toLowerCase() === "g" && clone.attributes.length === 0) {
+//             clone.classList.add("svg-group1");
+//         }
+//         mergedSvg.appendChild(clone);
+//     });
+
+//     svg2Children.forEach(child => {
+//         const clone = child.cloneNode(true);
+//         if (clone.tagName.toLowerCase() === "g" && clone.attributes.length === 0) {
+//             clone.classList.add("svg-group1");
+//         }
+//         mergedSvg.appendChild(clone);
+//     });
+
+//     let svgElements = mergedSvg.querySelectorAll(".svg-group1"); // search inside mergedSvg only
+//     if (svgElements.length >= 2) {
+//         svgElements[0].setAttribute("transform", "translate(0, 0)");
+//         svgElements[1].setAttribute("transform", "translate(43, 0)");
+//     }
+
+//     svg1.remove();
+//     svg2.remove();
+
+//     console.log("Merged elements:", svgElements);
+//     makeDeletable(mergedSvg)
+//     canvas.appendChild(mergedSvg);
+    
+// }
 
 function changeCursor(cursorType) {
     document.body.style.cursor = cursorType;
@@ -265,10 +479,6 @@ function makeDeletable(element) {
 //         });
 //     });
 // });
-
-window.onbeforeunload = function() {
-  return "Data will be lost if you leave the page, are you sure?";
-};
 
 async function setUpCanvas(path='', molCanvasId, specCanvasId, molWidth, molHeight, specWidth, specHeight) {
     removeCanvas(molCanvasId)

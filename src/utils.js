@@ -60,8 +60,6 @@ function dragElement(elementName, elementHeader) {
     dragHandle.onmousedown = dragStart;   
     dragHandle.ontouchstart = dragStart;
 
-
-    // --- Core Drag Functions ---
     function dragStart(e) {
         e = e || window.event;
         e.preventDefault(); 
