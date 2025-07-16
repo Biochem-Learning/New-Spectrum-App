@@ -13,23 +13,12 @@ const SPEC_DESCRIPTION_TEXTBOX =  document.querySelector(".spec-desc");
 let displayingMol = "Ethanol"
 let viewingMode = "MS"
 
-let dataJSON;
-
-// Usage
-// (async function () {
-//     const jsonFilePath = "data/Spectra/SpecDescription/Ethanol.json";
-//     try {
-//         dataJSON = await loadJSONData(jsonFilePath);
-//         console.log(dataJSON); // Work with your JSON data here
-//     } catch (error) {
-//         console.error("Error during data loading:", error);
-//     }
-// })();
+let spectraCache = {};
 
 /// Problem: Extreme Inefficient (The App fetch JSON every mousemove)
 
 let canvases = setUpCanvas(
-    'data/Spectra/' + viewingMode + '/' + displayingMol + viewingMode + '.jdx',
+    'data/spectra/' + viewingMode + '/' + displayingMol + viewingMode + '.jdx',
     MOL_CANVAS_ID,
     SPEC_CANVAS_ID,
     MOL_CANVAS_WIDTH,
@@ -38,7 +27,7 @@ let canvases = setUpCanvas(
     SPEC_CANVAS_HEIGHT,
 );
 
-createCompoundSubmenu("data/Spectra/CompondMenu.txt")
+createCompoundSubmenu("data/spectra/compound-menu.txt")
 
 dragMove(".frag-table", ".f-t-general-instr");
 
@@ -53,18 +42,15 @@ document.querySelector(".frag-table-button").addEventListener("click", function(
     displayOrHideElement(".frag-table-button", ".frag-table", true, "Fragment Table");
 });
 
-document.addEventListener("click", function() {
-    const clickedElement = event.target
+document.addEventListener("click", function (event) {
+    const clickedElement = event.target;
 
-    if (clickedElement.className !== "frag-table" && 
-        clickedElement.className !== "f-t-general-instr" &&
-        clickedElement.className !== "frag-canvas" &&
-        clickedElement.className !== "user-section" &&
-        clickedElement.className !== "overlay" && 
-        clickedElement.tagName !== "svg" &&
-        clickedElement.id != "del-frag-button") {
-        clickout(".frag-table");
+    if (clickedElement.closest(".frag-table, .user-section, .overlay, .info-section, svg") ||
+        clickedElement.id === "del-frag-button") {
+        return;
     }
+
+    clickout(".frag-table");
 });
 
 document.querySelectorAll(".nav-bar-section").forEach(button => {
@@ -73,7 +59,7 @@ document.querySelectorAll(".nav-bar-section").forEach(button => {
             displayGeneralText(displayingMol)
             return;
         }
-        canvases = setUpCanvas('data/Spectra/' + this.id + '/' + displayingMol + this.id + '.jdx',
+        canvases = setUpCanvas('data/spectra/' + this.id + '/' + displayingMol + this.id + '.jdx',
             MOL_CANVAS_ID,
             SPEC_CANVAS_ID,
             MOL_CANVAS_WIDTH,
@@ -160,141 +146,141 @@ async function useRDKit() {
 
 useRDKit();
 
-handlePairSelection(mergeImages)
+handleSvgPairSelection(mergeImages)
 
 async function mergeImages(selected1, selected2) {
     let RDKit = await loadRDKit()
-          const svgString1 = decodeURIComponent(selected1.dataset.smiles);
-          const svgString2= decodeURIComponent(selected2.dataset.smiles);
+    const svgString1 = decodeURIComponent(selected1.dataset.smiles);
+    const svgString2= decodeURIComponent(selected2.dataset.smiles);
 
-          let arr = svgString1.split("");
-          let arr2 = svgString2.split("");
+    let arr = svgString1.split("");
+    let arr2 = svgString2.split("");
 
-          /// Detemine out of the two which one has more C bond and make that the primary bond
-          const carbonCount1 = arr.filter(x => x === "C").length;
-          const carbonCount2 = arr2.filter(x => x === "C").length;
+    /// Detemine out of the two which one has more C bond and make that the primary bond
+    const carbonCount1 = arr.filter(x => x === "C").length;
+    const carbonCount2 = arr2.filter(x => x === "C").length;
 
-          const hydrogenCount = arr.filter(x => x === "H").length + arr2.filter(x => x === "H").length;
-          console.log(hydrogenCount)
+    const hydrogenCount = arr.filter(x => x === "H").length + arr2.filter(x => x === "H").length;
+    console.log(hydrogenCount)
 
-          let primaryFrag, secondaryFrag;
-          if (carbonCount1 < carbonCount2) {
-              primaryFrag = svgString2;
-              secondaryFrag = svgString1;
-              arr = arr2
-          } else {
-              primaryFrag = svgString1;
-              secondaryFrag = svgString2;
-          }
+    let primaryFrag, secondaryFrag;
+    if (carbonCount1 < carbonCount2) {
+        primaryFrag = svgString2;
+        secondaryFrag = svgString1;
+        arr = arr2
+    } else {
+        primaryFrag = svgString1;
+        secondaryFrag = svgString2;
+    }
 
-          console.log("primaryFrag: " + primaryFrag)
-          console.log("secondaryFrag: " + secondaryFrag)
+    console.log("primaryFrag: " + primaryFrag)
+    console.log("secondaryFrag: " + secondaryFrag)
 
-          let spliceIndex = null;
+    let spliceIndex = null;
 
-          console.log(arr)
+    console.log(arr)
 
-          if (arr[0] === "C" && arr[1] === "C") {
-            spliceIndex = 0;
-            console.log("Passed to first character");
-            console.log(arr[0])
-          } else if (arr[arr.length - 1] === "C") {
-            spliceIndex = arr.length - 1; 
-            console.log("Passed to last character");
-          } else {
-            for (let i = 0; i < arr.length; i++) {
-              if (arr[i] === "C" && arr[i + 1] === ")") {
-                spliceIndex = i;
-                console.log("Passed to middle character");
-                break;
-              }
+    if (arr[0] === "C" && arr[1] === "C") {
+        spliceIndex = 0;
+        console.log("Passed to first character");
+        console.log(arr[0])
+    } else if (arr[arr.length - 1] === "C") {
+        spliceIndex = arr.length - 1; 
+        console.log("Passed to last character");
+    } else {
+        for (let i = 0; i < arr.length; i++) {
+            if (arr[i] === "C" && arr[i + 1] === ")") {
+            spliceIndex = i;
+            console.log("Passed to middle character");
+            break;
             }
-          }
-
-          if (spliceIndex === null) {
-            console.error("No valid splice point found!");
-            return;
-          }
-
-          const convertedSecondaryFrag = await removeOneBond(secondaryFrag,spliceIndex);
-
-          // Replace at spliceIndex
-          arr.splice(spliceIndex, 1, convertedSecondaryFrag);
-          console.log("Splice Index = ", spliceIndex)
-          let mergedString = arr.join("");
-          let smileData = mergedString;
-
-          /// If H >= 0:
-          if (hydrogenCount >= 0) {
-            /// Remove all [] and replace H by C
-            let cleanedStr = mergedString.replace(/\[|\]/g, "").replace(/H/g, "C");
-            console.log(cleanedStr)
-            /// - Convert mergedString to mol
-            let convertedMol = RDKit.get_mol(cleanedStr)
-            console.log("convertedMol: " + convertedMol)
-
-            /// - Convert mol to molblock
-            let convertedMolBlock = convertedMol.get_molblock()
-
-            /// - Use molblock to find emptyIndex
-            let emptyBonds = getEmptyBondIndex(convertedMolBlock)
-            console.log("emptyBonds: " + emptyBonds)
-            /// - Use emptyIndex to insert H into mol = number of H in both fragments
-            console.log("hydrogenCount: " + hydrogenCount)
-
-            let addHMol = convertedMolBlock;
-            for (let i = 0; i < hydrogenCount; i += 1) {
-              const randomIndex = Math.floor(Math.random() * emptyBonds.length);
-              const randomElement = emptyBonds.splice(randomIndex, 1)[0];
-              console.log("randomIndex: " + randomElement)
-
-              addHMol = replaceAtomByIndex(addHMol, randomElement, "H")
-            }
-
-            console.log("emptyBonds after spliced: " + emptyBonds)
-            // console.log("addHMol: " + addHMol)
-
-            const finalMol = RDKit.get_mol(addHMol);
-            /// - Convert mol to smile
-            let smileString = finalMol.get_smiles()
-
-            console.log("smileString: " + smileString)
-            /// - Insert smile into svg
-
-            mergedString = addHMol;
-            smileData = smileString
-          }
-          
-
-          console.log("Merged SMILES:", mergedString);
-
-          selected1.remove();
-          selected2.remove();
-
-          const mergedMol = RDKit.get_mol(mergedString);
-          const mergedSvg = mergedMol.get_svg().replace(
-            "<svg",
-            `<svg data-smiles="${smileData}"`
-          );
-          let canvas = document.querySelector("#frag-canvas")
-          canvas.innerHTML += mergedSvg;
-
         }
+    }
+
+    if (spliceIndex === null) {
+        console.error("No valid splice point found!");
+        return;
+    }
+
+    const convertedSecondaryFrag = await removeOneBond(secondaryFrag,spliceIndex);
+
+    // Replace at spliceIndex
+    arr.splice(spliceIndex, 1, convertedSecondaryFrag);
+    console.log("Splice Index = ", spliceIndex)
+    let mergedString = arr.join("");
+    let smileData = mergedString;
+
+    /// If H >= 0:
+    if (hydrogenCount >= 0) {
+        /// Remove all [] and replace H by C
+        let cleanedStr = mergedString.replace(/\[|\]/g, "").replace(/H/g, "C");
+        console.log(cleanedStr)
+        /// - Convert mergedString to mol
+        let convertedMol = RDKit.get_mol(cleanedStr)
+        console.log("convertedMol: " + convertedMol)
+
+        /// - Convert mol to molblock
+        let convertedMolBlock = convertedMol.get_molblock()
+
+        /// - Use molblock to find emptyIndex
+        let emptyBonds = getEmptyBondIndex(convertedMolBlock)
+        console.log("emptyBonds: " + emptyBonds)
+        /// - Use emptyIndex to insert H into mol = number of H in both fragments
+        console.log("hydrogenCount: " + hydrogenCount)
+
+        let addHMol = convertedMolBlock;
+        for (let i = 0; i < hydrogenCount; i += 1) {
+            const randomIndex = Math.floor(Math.random() * emptyBonds.length);
+            const randomElement = emptyBonds.splice(randomIndex, 1)[0];
+            console.log("randomIndex: " + randomElement)
+
+            addHMol = replaceAtomByIndex(addHMol, randomElement, "H")
+        }
+
+        console.log("emptyBonds after spliced: " + emptyBonds)
+        // console.log("addHMol: " + addHMol)
+
+        const finalMol = RDKit.get_mol(addHMol);
+        /// - Convert mol to smile
+        let smileString = finalMol.get_smiles()
+
+        console.log("smileString: " + smileString)
+        /// - Insert smile into svg
+
+        mergedString = addHMol;
+        smileData = smileString
+    }
+    
+
+    console.log("Merged SMILES:", mergedString);
+
+    selected1.remove();
+    selected2.remove();
+
+    const mergedMol = RDKit.get_mol(mergedString);
+    const mergedSvg = mergedMol.get_svg().replace(
+        "<svg",
+        `<svg data-smiles="${smileData}"`
+    );
+    let canvas = document.querySelector("#frag-canvas")
+    canvas.innerHTML += mergedSvg;
+
+}
 
 async function removeOneBond(SMILEStr, position) {
     let RDKit = await loadRDKit()
-        /// convert SMILEstr into molblock
-        let mol = RDKit.get_mol(SMILEStr);
-        let molblock = mol.get_molblock()
-        let emptyBonds = getEmptyBondIndex(molblock)
+    /// convert SMILEstr into molblock
+    let mol = RDKit.get_mol(SMILEStr);
+    let molblock = mol.get_molblock()
+    let emptyBonds = getEmptyBondIndex(molblock)
 
-        console.log("Secondary molblock: " + molblock)
-        console.log("Secondary mol empty bond: " + emptyBonds)
-        /// get emptyIndex
-        let newSmiles;
-        /// if postion === 0 (remove lasts):
-        if (position == 0) {
-        /// if last C is empty bond (last and last-1 === C):
+    console.log("Secondary molblock: " + molblock)
+    console.log("Secondary mol empty bond: " + emptyBonds)
+    /// get emptyIndex
+    let newSmiles;
+    /// if postion === 0 (remove lasts):
+    if (position == 0) {
+    /// if last C is empty bond (last and last-1 === C):
         if (SMILEStr[SMILEStr.length - 1] === "C") {
             ///     delete last C
             newSmiles = SMILEStr.slice(0, -1);
@@ -317,34 +303,28 @@ async function removeOneBond(SMILEStr, position) {
             console.log(element)
         }
 
-        }
-        /// else (position !=  0) (remove first):
-        else {
+    }
+    /// else (position !=  0) (remove first):
+    else {
         ///   if first C is empty bond (first and first+1 === C):
         if (SMILEStr[0].toUpperCase() === "C") {
             console.log("4 is run")
             /// delete first C
             newSmiles = SMILEStr.slice(1);
-        }
-        /// else (not empty first bond):
-        else {
-            /// move first to an empty bond using emptyIndex by count to the emptyIndex C
-        }
-        }
-        // for the second mol the connection point would ALWAYS be the first or last C bond depedning on situation, so if there is 
-        // anything that is not C in the first or last position of the secondMOL string, move it to anther bond location
-        // if molString2 is merged in the beginning of molString1: remove C at the end
-        // if molString2 is merged in the middle or end of molString1: remove C in the beginning
-        newSmiles = SMILEStr.slice(0, -1);
-        return newSmiles
-        console.log("8 is run")
     }
-  
-
-function changeCursor(cursorType) {
-    document.body.style.cursor = cursorType;
+    /// else (not empty first bond):
+    else {
+        /// move first to an empty bond using emptyIndex by count to the emptyIndex C
+    }
+    }
+    // for the second mol the connection point would ALWAYS be the first or last C bond depedning on situation, so if there is 
+    // anything that is not C in the first or last position of the secondMOL string, move it to anther bond location
+    // if molString2 is merged in the beginning of molString1: remove C at the end
+    // if molString2 is merged in the middle or end of molString1: remove C in the beginning
+    newSmiles = SMILEStr.slice(0, -1);
+    return newSmiles
+    console.log("8 is run")
 }
-
 
 function toggleMode(currentMode) {
     return !currentMode;
@@ -380,7 +360,7 @@ async function setUpCanvas(path='', molCanvasId, specCanvasId, molWidth, molHeig
 
 window.addEventListener('resize', function() {
     canvases = setUpCanvas(
-        'data/Spectra/' + viewingMode + '/' + displayingMol + viewingMode + '.jdx',
+        'data/spectra/' + viewingMode + '/' + displayingMol + viewingMode + '.jdx',
         MOL_CANVAS_ID,
         SPEC_CANVAS_ID,
         MOL_CANVAS_WIDTH,
@@ -407,120 +387,98 @@ function removeCanvas(canvasId) {
 }
 
 async function createCompoundSubmenu(menuFilePath) {
-    let dropdownMenu = document.querySelector(".dropdown");  
+    const dropdownMenu = document.querySelector(".dropdown");
+    if (!dropdownMenu) {
+        console.error("Dropdown container '.dropdown' not found.");
+        return;
+    }
 
-    let ddContentWrapper = document.createElement("div");
+    dropdownMenu.querySelector(".dropdown-content")?.remove();
+
+    const ddContentWrapper = document.createElement("div");
     ddContentWrapper.classList.add("dropdown-content");
-
     dropdownMenu.appendChild(ddContentWrapper);
 
-    fetch(menuFilePath)
-    .then(response => response.text())
-    .then(data => {
-        const lines = data.split('\n');
-        const itemArray = lines.map(line => line.trim()).filter(line => line !== '');
-        
-        for(let i = 0; i < itemArray.length; i += 1) {
-            let subItem = document.createElement("a");
-            subItem.textContent = itemArray[i];
-            subItem.id = "dropdown-item-" + i;
+    try {
+        const response = await fetch(menuFilePath);
+        if (!response.ok) {
+            throw new Error(`HTTP error: ${response.status}`);
+        }
+
+        const textData = await response.text();
+        const itemArray = textData
+            .split('\n')
+            .map(line => line.trim())
+            .filter(Boolean); 
+
+        itemArray.forEach((compoundName, index) => {
+            const subItem = document.createElement("a");
+            subItem.textContent = compoundName;
+            subItem.id = `dropdown-item-${index}`;
             subItem.classList.add('dropdown-item');
             ddContentWrapper.appendChild(subItem);
 
-            subItem.addEventListener('click', function(event) {
-                event.preventDefault(); 
-                displayingMol = itemArray[i];
+            subItem.addEventListener('click', (event) => {
+                event.preventDefault();
 
-                canvases = setUpCanvas('data/Spectra/MS/' + displayingMol + 'MS.jdx',
+                console.log(`Selected compound: ${compoundName}`);
+                displayingMol = compoundName;
+
+                canvases = setUpCanvas(
+                    `data/spectra/MS/${compoundName}MS.jdx`,
                     MOL_CANVAS_ID,
                     SPEC_CANVAS_ID,
                     MOL_CANVAS_WIDTH,
                     MOL_CANVAS_HEIGHT,
                     SPEC_CANVAS_WIDTH,
                     SPEC_CANVAS_HEIGHT
-                )
+                );
 
-                displayGeneralText(displayingMol)
+                displayGeneralText(compoundName);
             });
-        }
-    })
-    .catch(error => console.error('Error reading file:', error));
-
-}
-
-async function loadAndStoreData() {
-    const jsonFilePath = "data/Spectra/SpecDescription/Ethanol.json"; // Your JSON file path
-
-    try {
-        dataJSON = await getJsonData(jsonFilePath);
-
+        });
     } catch (error) {
-        console.error("Failed to load and process data:", error);
+        console.error("Error reading menu file:", error);
     }
 }
 
-///Not good, need rewrite
-async function displayGeneralText(molecule,mode="",textBoxEl=SPEC_DESCRIPTION_TEXTBOX) {
-    const dataJSON = await getDataJSON("data/Spectra/SpecDescription/" + molecule +".json");
-    switch (mode) {
-        case "":
-            textBoxEl.innerText = dataJSON.description;
-            break
-        case "MS":
-            textBoxEl.innerText = dataJSON.spectra_info.MS.general_description;
-            break
-        case "IR":
-            textBoxEl.innerText = dataJSON.spectra_info.IR.general_description;
-            break
-        case "HNMR":
-            textBoxEl.innerText = dataJSON.spectra_info.HNMR.general_description;
-            break
-        case "CNMR":
-            textBoxEl.innerText = dataJSON.spectra_info.CNMR.general_description;
-            break
+async function getSpectraJSON(molecule) {
+    if (spectraCache[molecule]) {
+        return spectraCache[molecule];
     }
+    const data = await getDataJSON(`data/spectra/spec-description/${molecule}.json`);
+    spectraCache[molecule] = data;
+    return data;
 }
 
-async function displayTextWhenHovered(hoveredEl, mode, mol, textBoxEl) {
-    const dataJSON = await getDataJSON("data/Spectra/SpecDescription/" + mol + ".json");
+function getSpectraSection(dataJSON, mode) {
+    if (!mode) return dataJSON.description;
+    return dataJSON?.spectra_info?.[mode]?.general_description || "";
+}
 
+async function displayGeneralText(molecule, mode = "", textBoxEl = SPEC_DESCRIPTION_TEXTBOX) {
+    const dataJSON = await getSpectraJSON(molecule);
+    textBoxEl.innerText = getSpectraSection(dataJSON, mode);
+}
+
+async function displayTextWhenHovered(hoveredEl, mode, molecule, textBoxEl) {
+    if (!hoveredEl || typeof hoveredEl.x !== "number" || isNaN(hoveredEl.x)) {
+        console.warn("Invalid hovered object or hovered.x:", hoveredEl);
+        return;
+    }
     if (!textBoxEl) {
-        console.error("Error: Element with class '.spec-desc' not found.");
-        return; 
+        console.error("Text box element not found.");
+        return;
     }
 
-    if (hoveredEl && typeof hoveredEl.x === 'number' && hoveredEl.x !== null && !isNaN(hoveredEl.x)) {
+    const dataJSON = await getSpectraJSON(molecule);
+    const peaks = dataJSON?.spectra_info?.[mode]?.peaks || [];
 
-        let peaksFromJSON;
-        switch (mode) {
-            case "MS":
-                peaksFromJSON = dataJSON?.spectra_info?.MS?.peaks;
-                break
-            case "IR":
-                peaksFromJSON = dataJSON?.spectra_info?.IR?.peaks;
-                break
-            case "HNMR":
-                peaksFromJSON = dataJSON?.spectra_info?.HNMR?.peaks;
-                break
-            case "CNMR":
-                peaksFromJSON = dataJSON?.spectra_info?.CNMR?.peaks;
-                break
-        }
-
-        if (Array.isArray(peaksFromJSON)) {
-            for(let i = 0; i < peaksFromJSON.length; i += 1)  {
-                
-                if (hoveredEl.x == peaksFromJSON[i].x) { 
-                    textBoxEl.innerText = peaksFromJSON[i].description;
-                }
-            }
-        } else {
-            console.warn("JSON does not contain a valid 'spectra_info.MS.peaks' array.");
-        }
-
+    const peak = peaks.find(p => p.x === hoveredEl.x);
+    if (peak) {
+        textBoxEl.innerText = peak.description;
     } else {
-        descriptionToShow = "Invalid hovered peak data provided.";
-        console.warn("Invalid 'hovered' object or 'hovered.x' value:", hoveredEl);
+        console.warn(`No peak found for x=${hoveredEl.x}`);
     }
 }
 
@@ -540,7 +498,7 @@ function removeTextWhenMoveout(textBoxEl) {
 //     try {
 //         const canvasesArray = await canvases;
 
-//         const specJSON = await getDataJSON("data/Spectra/SpecDescription/" + molecule +".json");
+//         const specJSON = await getDataJSON("data/spectra/SpecDescription/" + molecule +".json");
 
 //         let specCanvas = canvasesArray[1];
 
