@@ -239,75 +239,183 @@ function dragAndDrop() {
 
 dragAndDrop()
 
-async function mergeImages(selected1,selected2) {
-    let RDKit = await loadRDKit();
-    const svgString1 = decodeURIComponent(selected1.dataset.smiles);
-    const svgString2Unconverted = decodeURIComponent(selected2.dataset.smiles);
-    const svgString2 = removeOneBond(svgString2Unconverted);
-    const canvas =  document.querySelector("#frag-canvas")
+async function mergeImages(selected1, selected2) {
+    let RDKit = await loadRDKit()
+          const svgString1 = decodeURIComponent(selected1.dataset.smiles);
+          const svgString2= decodeURIComponent(selected2.dataset.smiles);
 
-    const arr = svgString1.split("")
-    let spliceIndex = null;
+          let arr = svgString1.split("");
+          let arr2 = svgString2.split("");
 
-    if (arr[0] === "C" && arr[1] === "C") {
-        spliceIndex = 0;
-        console.log("Passed to first character");
-        console.log(arr[0])
-    } 
-    else if (arr[arr.length - 1] === "C") {
-        spliceIndex = arr.length - 1; // <-- fixed: insert at end
-        console.log("Passed to last character");
-    } 
-    else {
-        for (let i = 0; i < arr.length; i++) {
-                if (arr[i] === "C" && arr[i + 1] === ")") {
+          /// Detemine out of the two which one has more C bond and make that the primary bond
+          const carbonCount1 = arr.filter(x => x === "C").length;
+          const carbonCount2 = arr2.filter(x => x === "C").length;
+
+          const hydrogenCount = arr.filter(x => x === "H").length + arr2.filter(x => x === "H").length;
+          console.log(hydrogenCount)
+
+          let primaryFrag, secondaryFrag;
+          if (carbonCount1 < carbonCount2) {
+              primaryFrag = svgString2;
+              secondaryFrag = svgString1;
+              arr = arr2
+          } else {
+              primaryFrag = svgString1;
+              secondaryFrag = svgString2;
+          }
+
+          console.log("primaryFrag: " + primaryFrag)
+          console.log("secondaryFrag: " + secondaryFrag)
+
+          let spliceIndex = null;
+
+          console.log(arr)
+
+          if (arr[0] === "C" && arr[1] === "C") {
+            spliceIndex = 0;
+            console.log("Passed to first character");
+            console.log(arr[0])
+          } else if (arr[arr.length - 1] === "C") {
+            spliceIndex = arr.length - 1; 
+            console.log("Passed to last character");
+          } else {
+            for (let i = 0; i < arr.length; i++) {
+              if (arr[i] === "C" && arr[i + 1] === ")") {
                 spliceIndex = i;
                 console.log("Passed to middle character");
                 break;
+              }
             }
+          }
+
+          if (spliceIndex === null) {
+            console.error("No valid splice point found!");
+            return;
+          }
+
+          const convertedSecondaryFrag = await removeOneBond(secondaryFrag,spliceIndex);
+
+          // Replace at spliceIndex
+          arr.splice(spliceIndex, 1, convertedSecondaryFrag);
+          console.log("Splice Index = ", spliceIndex)
+          let mergedString = arr.join("");
+          let smileData = mergedString;
+
+          /// If H >= 0:
+          if (hydrogenCount >= 0) {
+            /// Remove all [] and replace H by C
+            let cleanedStr = mergedString.replace(/\[|\]/g, "").replace(/H/g, "C");
+            console.log(cleanedStr)
+            /// - Convert mergedString to mol
+            let convertedMol = RDKit.get_mol(cleanedStr)
+            console.log("convertedMol: " + convertedMol)
+
+            /// - Convert mol to molblock
+            let convertedMolBlock = convertedMol.get_molblock()
+
+            /// - Use molblock to find emptyIndex
+            let emptyBonds = getEmptyBondIndex(convertedMolBlock)
+            console.log("emptyBonds: " + emptyBonds)
+            /// - Use emptyIndex to insert H into mol = number of H in both fragments
+            console.log("hydrogenCount: " + hydrogenCount)
+
+            let addHMol = convertedMolBlock;
+            for (let i = 0; i < hydrogenCount; i += 1) {
+              const randomIndex = Math.floor(Math.random() * emptyBonds.length);
+              const randomElement = emptyBonds.splice(randomIndex, 1)[0];
+              console.log("randomIndex: " + randomElement)
+
+              addHMol = replaceAtomByIndex(addHMol, randomElement, "H")
+            }
+
+            console.log("emptyBonds after spliced: " + emptyBonds)
+            // console.log("addHMol: " + addHMol)
+
+            const finalMol = RDKit.get_mol(addHMol);
+            /// - Convert mol to smile
+            let smileString = finalMol.get_smiles()
+
+            console.log("smileString: " + smileString)
+            /// - Insert smile into svg
+
+            mergedString = addHMol;
+            smileData = smileString
+          }
+          
+
+          console.log("Merged SMILES:", mergedString);
+
+          selected1.remove();
+          selected2.remove();
+
+          const mergedMol = RDKit.get_mol(mergedString);
+          const mergedSvg = mergedMol.get_svg().replace(
+            "<svg",
+            `<svg data-smiles="${smileData}"`
+          );
+          let canvas = document.querySelector("#frag-canvas")
+          canvas.innerHTML += mergedSvg;
+
         }
-    }
 
-    if (spliceIndex === null) {
-        alert("No valid splice point found!");
-        return;
-    }
+async function removeOneBond(SMILEStr, position) {
+    let RDKit = await loadRDKit()
+        /// convert SMILEstr into molblock
+        let mol = RDKit.get_mol(SMILEStr);
+        let molblock = mol.get_molblock()
+        let emptyBonds = getEmptyBondIndex(molblock)
 
-    arr.splice(spliceIndex, 1, svgString2);
-    const mergedString = arr.join("");
+        console.log("Secondary molblock: " + molblock)
+        console.log("Secondary mol empty bond: " + emptyBonds)
+        /// get emptyIndex
+        let newSmiles;
+        /// if postion === 0 (remove lasts):
+        if (position == 0) {
+        /// if last C is empty bond (last and last-1 === C):
+        if (SMILEStr[SMILEStr.length - 1] === "C") {
+            ///     delete last C
+            newSmiles = SMILEStr.slice(0, -1);
+            console.log("1 is run")
+        }
+        ///   else (not empty last bond):
+        else {
+            /// move last to an empty bond using emptyIndex by count to the emptyIndex C
+            let element;
 
-    console.log("Merged SMILES:", mergedString);
+            if (SMILEStr[SMILEStr.length - 2].toUpperCase() !== "C") {
+                // Take the last 2 characters
+                element = SMILEStr.slice(SMILEStr.length - 2);
+            } else {
+                // Otherwise just take the last character
+                element = SMILEStr[SMILEStr.length - 1];
+            }
 
-    selected1.remove();
-    selected2.remove();
-
-    const mergedMol = RDKit.get_mol(mergedString);
-    const mergedSvg = mergedMol.get_svg().replace(
-        "<svg",
-        `<svg data-smiles="${mergedString}"`
-    );
-
-    // dict.set(svg, smileStr);
-    canvas.innerHTML += mergedSvg;
-
-}
-
-function removeOneBond(SMILEStr, position) {
-    if (position == 0) {
-        if (SMILEStr[-1] !== "C") {
-            ///Communicate so that it can be mooved to onther position in the first bond
-            return
+            /// Maybe delete one in the molblock
+            console.log(element)
         }
 
+        }
+        /// else (position !=  0) (remove first):
+        else {
+        ///   if first C is empty bond (first and first+1 === C):
+        if (SMILEStr[0].toUpperCase() === "C") {
+            console.log("4 is run")
+            /// delete first C
+            newSmiles = SMILEStr.slice(1);
+        }
+        /// else (not empty first bond):
+        else {
+            /// move first to an empty bond using emptyIndex by count to the emptyIndex C
+        }
+        }
+        // for the second mol the connection point would ALWAYS be the first or last C bond depedning on situation, so if there is 
+        // anything that is not C in the first or last position of the secondMOL string, move it to anther bond location
+        // if molString2 is merged in the beginning of molString1: remove C at the end
+        // if molString2 is merged in the middle or end of molString1: remove C in the beginning
+        newSmiles = SMILEStr.slice(0, -1);
+        return newSmiles
+        console.log("8 is run")
     }
-
-    // for the second mol the connection point would ALWAYS be the first or last C bond depedning on situation, so if there is 
-    // anything that is not C in the first or last position of the secondMOL string, move it to anther bond location
-    // if molString2 is merged in the beginning of molString1: remove C at the end
-    // if molString2 is merged in the middle or end of molString1: remove C in the beginning
-    let newSmiles = SMILEStr.slice(0, -1);
-    return newSmiles
-}
   
 // dragAndDrop()
 

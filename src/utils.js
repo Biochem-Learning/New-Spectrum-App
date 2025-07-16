@@ -193,3 +193,61 @@ async function getDataJSON(jsonPath) {
     return dataObject;
 }
 
+function toArrayOfArrays(file) {
+    return file
+        .split("\n")                   
+        .map(line => line.trim())      
+        .filter(line => line.length)  
+        .map(line => line.split(/\s+/)); 
+}
+
+
+
+function extractBondData(molblock) {
+    let molblockArray = toArrayOfArrays(molblock)
+    let numAtomStr = molblockArray[1][0]
+    let numAtom = Number(numAtomStr)
+    let bondDataArray = molblockArray.slice(numAtom + 2, molblockArray.length - 1);
+
+    return bondDataArray;
+}
+
+function extractBondConnectivityData(molblock) {
+    let bondData = extractBondData(molblock); 
+
+    let connectivity = bondData.map(line => line.slice(0, 2));
+
+    return connectivity;
+}
+
+function toFlatArray(nestedArray) {
+    return nestedArray.flat();
+}
+
+function getEmptyBondIndex(molblock) {
+    const nestedConnectivityData = extractBondConnectivityData(molblock);
+    const connectivityData = toFlatArray(nestedConnectivityData).map(Number);
+    const molblockArray = toArrayOfArrays(molblock);
+
+    const numAtom = Number(molblockArray[1][0]);
+
+    const emptyBond = [];
+
+    const bondCounts = new Array(numAtom + 1).fill(0); // +1 for 1-based indexing
+    for (const atom of connectivityData) {
+        bondCounts[atom]++;
+    }
+
+    for (let i = 1; i <= numAtom; i++) {
+        const atomLine = molblockArray[2 + i - 1]; 
+        const atomType = atomLine[3]; 
+
+        if (bondCounts[i] === 1 && atomType === "C") {
+            emptyBond.push(i);
+            console.log(atomLine[3])
+        }
+    }
+
+    return emptyBond;
+}
+
