@@ -77,7 +77,7 @@ let editMode = false;
 function loadFragmentTable() {
     let fragTable = document.querySelector(".frag-table")
     for (let i = 0; i < 9; i++) {
-        fetch("data/FragLibrary/frag" + i + ".svg")
+        fetch("data/frag-library/frag" + i + ".svg")
         .then(response => {
             if (!response.ok) {
                 throw new Error("Failed to load: " + response.status);
@@ -477,8 +477,6 @@ async function displayTextWhenHovered(hoveredEl, mode, molecule, textBoxEl) {
     const peak = peaks.find(p => p.x === hoveredEl.x);
     if (peak) {
         textBoxEl.innerText = peak.description;
-    } else {
-        console.warn(`No peak found for x=${hoveredEl.x}`);
     }
 }
 
