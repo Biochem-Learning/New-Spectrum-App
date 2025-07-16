@@ -38,40 +38,9 @@ let canvases = setUpCanvas(
     SPEC_CANVAS_HEIGHT,
 );
 
-// let userCanvas = setUpSketcherCanvas(
-//     "frag-canvas", 
-//     USER_CANVAS_WIDTH, 
-//     USER_CANVAS_HEIGHT
-// );
-
-// function setUpSketcherCanvas(canvasId, width, height) {
-// 	// Initiate the canvas
-// 	const options = {
-// 		useService: true,
-// 		oneMolecule: false,
-// 		// isMobile: true,
-// 	};
-
-// 	// Set up the ChemDoodle SketcherCanvas component
-// 	ChemDoodle.ELEMENT["H"].jmolColor = "black";
-// 	ChemDoodle.ELEMENT["S"].jmolColor = "#B9A130";
-// 	const sketcher = new ChemDoodle.SketcherCanvas(
-//         canvasId, 
-//         percentage("#" + canvasId, width, "width"), 
-//         percentage("#" + canvasId, height, "height"), 
-//         options);
-
-// 	sketcher.styles.atoms_displayTerminalCarbonLabels_2D = true;
-// 	sketcher.styles.atoms_useJMOLColors = true;
-// 	sketcher.styles.bonds_clearOverlaps_2D = true;
-// 	sketcher.styles.shapes_color = "c10000";
-
-// 	return sketcher;
-// }
-
 createCompoundSubmenu("data/Spectra/CompondMenu.txt")
 
-dragElement(".frag-table", ".f-t-general-instr");
+dragMove(".frag-table", ".f-t-general-instr");
 
 displayGeneralText(displayingMol)
 
@@ -81,7 +50,7 @@ displayGeneralText(displayingMol)
 
 document.querySelector(".frag-table-button").addEventListener("click", function() {
     event.stopPropagation()
-    displayOrHideElement(".frag-table");
+    displayOrHideElement(".frag-table-button", ".frag-table", true, "Fragment Table");
 });
 
 document.addEventListener("click", function() {
@@ -162,21 +131,8 @@ function displayFragIntoCanvas(frag) {
 
 document.querySelector("#del-frag-button").addEventListener("click", function() {
     editMode = toggleMode(editMode);
-    displayOrHideElement2("jfdas")
+    displayOrHideElement("#del-frag-button", ".overlay", true, "Frag Edit Mode")
 })
-
-function displayOrHideElement2(elementSelector) {
-    let element = document.querySelector(".overlay")
-    let element2 = document.querySelector("#del-frag-button")
-    if (window.getComputedStyle(element).display === "none") {
-        element.style.display = "block";
-        element2.innerText = "Close Frag Edit Mode";
-    }
-    else {
-        element.style.display = "none";
-        element2.innerText = "Open Frag Edit Mode";
-    }
-}
 
     // Wait for RDKit to finish loading
 let RDKitLoader = null;
@@ -204,40 +160,7 @@ async function useRDKit() {
 
 useRDKit();
 
-      // Location of available bond: at the beginning, at the end, and before ")"
-                                       //    //    //   //
-
-function dragAndDrop() {
-
-    let selected1 = null;
-    let selected2 = null;
-    const canvas =  document.querySelector("#frag-canvas")
-    
-    canvas.addEventListener("mousedown", function (event) {
-        const target = event.target.closest("svg");
-        if (target) {
-            selected1 = target;
-            console.log("Selected 1:", selected1);
-        }
-    });
-
-    canvas.addEventListener("mouseup", function (event) {
-        const target = event.target.closest("svg");
-        if (target) {
-            selected2 = target;
-            console.log("Selected 2:", selected2);
-
-            if (selected1 && selected2 && selected1 !== selected2) {
-                mergeImages(selected1, selected2);
-
-                selected1 = null;
-                selected2 = null;
-            }
-        }
-    });
-}
-
-dragAndDrop()
+handlePairSelection(mergeImages)
 
 async function mergeImages(selected1, selected2) {
     let RDKit = await loadRDKit()
@@ -417,116 +340,6 @@ async function removeOneBond(SMILEStr, position) {
         console.log("8 is run")
     }
   
-// dragAndDrop()
-
-// function dragAndDrop() {
-//     let canvas = document.querySelector("#frag-canvas");
-
-//     let selected1 = null;
-//     let selected2 = null;
-    
-//     canvas.addEventListener("mousedown", function (event) {
-//         const target = event.target.closest("svg");
-//         if (target) {
-//             selected1 = target;
-//             console.log("Selected 1:", selected1);
-//         }
-//     });
-
-//     canvas.addEventListener("mouseup", function (event) {
-//         const target = event.target.closest("svg");
-//         if (target) {
-//             selected2 = target;
-//             console.log("Selected 2:", selected2);
-
-//             if (selected1 && selected2 && selected1 !== selected2) {
-//                 mergeImages(selected1, selected2);
-
-//                 // Clear selection after merging
-//                 selected1 = null;
-//                 selected2 = null;
-//             }
-//         }
-//     });
-// }
-
-// function createMergedSvgContainer() {
-//     const svgNS = "http://www.w3.org/2000/svg";
-//     const xlinkNS = "http://www.w3.org/1999/xlink";
-
-//     const svg = document.createElementNS(svgNS, "svg");
-
-//     // Set attributes
-//     svg.setAttribute("id", "mergedSvgContainer");
-//     svg.setAttribute("style", `
-//         cursor: pointer;
-//         fill-opacity: 1;
-//         text-rendering: auto;
-//         stroke: black;
-//         stroke-linecap: square;
-//         stroke-miterlimit: 10;
-//         shape-rendering: auto;
-//         stroke-opacity: 1;
-//         fill: black;
-//         stroke-dasharray: none;
-//         font-weight: normal;
-//         stroke-width: 1;
-//         font-family: 'Dialog';
-//         font-style: normal;
-//         stroke-linejoin: miter;
-//         font-size: 12px;
-//         stroke-dashoffset: 0;
-//         image-rendering: auto;
-//     `);
-//     svg.setAttribute("width", "86");
-//     svg.setAttribute("height", "16");
-//     svg.setAttribute("viewBox", "0 0 86.0 16.0");
-//     svg.setAttribute("xmlns", svgNS);
-//     svg.setAttribute("xmlns:xlink", xlinkNS);
-
-//     return svg; 
-// }
-
-// function mergeImages(svg1, svg2) {
-//     let mergedSvg = createMergedSvgContainer();
-//     let canvas = document.querySelector("#frag-canvas");
-
-//     console.log(svg1)
-//     console.log(svg2)
-
-//     let svg1Children = Array.from(svg1.children);
-//     let svg2Children = Array.from(svg2.children);
-
-//     svg1Children.forEach(child => {
-//         const clone = child.cloneNode(true);
-//         if (clone.tagName.toLowerCase() === "g" && clone.attributes.length === 0) {
-//             clone.classList.add("svg-group1");
-//         }
-//         mergedSvg.appendChild(clone);
-//     });
-
-//     svg2Children.forEach(child => {
-//         const clone = child.cloneNode(true);
-//         if (clone.tagName.toLowerCase() === "g" && clone.attributes.length === 0) {
-//             clone.classList.add("svg-group1");
-//         }
-//         mergedSvg.appendChild(clone);
-//     });
-
-//     let svgElements = mergedSvg.querySelectorAll(".svg-group1"); // search inside mergedSvg only
-//     if (svgElements.length >= 2) {
-//         svgElements[0].setAttribute("transform", "translate(0, 0)");
-//         svgElements[1].setAttribute("transform", "translate(43, 0)");
-//     }
-
-//     svg1.remove();
-//     svg2.remove();
-
-//     console.log("Merged elements:", svgElements);
-//     makeDeletable(mergedSvg)
-//     canvas.appendChild(mergedSvg);
-    
-// }
 
 function changeCursor(cursorType) {
     document.body.style.cursor = cursorType;
@@ -545,48 +358,6 @@ function makeDeletable(element) {
         }
     });
 }
-    
-// document.addEventListener('DOMContentLoaded', () => {
-//     let currentX = 0; // Track the current x position on the canvas
-//     let currentY = 0; // Track the current y position on the canvas
-
-//     const imgWidth = 100; // Set the width of each image
-//     const imgHeight = 100; // Set the height of each image
-//     const spacing = 10; // Spacing between images
-
-//     document.querySelectorAll(".frag-table-items").forEach(item => {
-//         item.addEventListener("click", function () {
-//             let fragCanvas = document.querySelector('#frag-canvas');
-//             let ctx = fragCanvas.getContext('2d');
-
-//             let imgSource = item.src;
-
-//             if (imgSource) {
-//                 let img = new Image();
-//                 img.src = imgSource;
-
-//                 img.onload = () => {
-//                     // Check if there's enough space on the current row
-//                     if (currentX + imgWidth > fragCanvas.width) {
-//                         // Move to the next row
-//                         currentX = 0;
-//                         currentY += imgHeight + spacing;
-//                     }
-
-//                     // Check if there's enough space vertically
-
-//                     // Draw the image at the current position
-//                     ctx.drawImage(img, currentX, currentY, imgWidth, imgHeight);
-
-//                     // Update the x position for the next image
-//                     currentX += imgWidth + spacing;
-//                 };
-//             } else {
-//                 console.error("Invalid image source");
-//             }
-//         });
-//     });
-// });
 
 async function setUpCanvas(path='', molCanvasId, specCanvasId, molWidth, molHeight, specWidth, specHeight) {
     removeCanvas(molCanvasId)
